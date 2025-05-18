@@ -9,7 +9,7 @@ Welcome to J's CDN! This repository hosts a collection of versatile JavaScript s
 To use any of these scripts in your project, you can include them directly via a `<script>` tag, pointing to their location in this CDN.
 
 ```html
-<script src="[https://jeffersoncgo.github.io/cdn/script.js](https://jeffersoncgo.github.io/cdn/script.js)"></script>
+<script src="[https://jeffersoncgo.github.io/cdn/js/script.js](https://jeffersoncgo.github.io/cdn/js/script.js)"></script>
 ```
 
 Ensure that dependencies are loaded before the scripts that rely on them. For example, `base.js` and `common.js` are often prerequisites for other scripts.
@@ -47,7 +47,7 @@ These scripts provide foundational functionalities and helper methods used acros
     Include `base.js` in your HTML. Its functionalities are then available under the `JCGWeb` namespace.
 
     ```html
-    <script src="https://jeffersoncgo.github.io/cdn/base.js"></script>
+    <script src="https://jeffersoncgo.github.io/cdn/js/base.js"></script>
     <script>
         // Example: Get unique selector for an element
         const myElement = document.getElementById('myElement');
@@ -91,7 +91,7 @@ The `utils` class provides static methods for common operations like URL manipul
     Call the static methods directly from the `utils` class.
 
     ```html
-    <script src="https://jeffersoncgo.github.io/cdn/common.js"></script>
+    <script src="https://jeffersoncgo.github.io/cdn/js/common.js"></script>
     <script>
         // Example: Add a stylesheet
         utils.AddStyle('[https://example.com/styles.css](https://example.com/styles.css)');
@@ -134,7 +134,7 @@ Scripts focused on observing and reacting to DOM changes and user interactions.
 * **How to Use:**
 
     ```html
-    <script src="https://jeffersoncgo.github.io/cdn/observer.js"></script>
+    <script src="https://jeffersoncgo.github.io/cdn/js/observer.js"></script>
     <script>
         const myElement = document.getElementById('myInteractiveElement');
         const observer = new Observer(myElement); // Defaults to document.body if no element provided
@@ -197,7 +197,7 @@ Scripts focused on observing and reacting to DOM changes and user interactions.
 * **How to Use:**
 
     ```html
-    <script src="https://jeffersoncgo.github.io/cdn/controller.js"></script>
+    <script src="https://jeffersoncgo.github.io/cdn/js/controller.js"></script>
     <script>
         // Example function that might take time
         async function fetchData(query, signal) {
@@ -299,11 +299,11 @@ Scripts for creating and managing interactive user interface elements.
 * **How to Use:**
 
     ```html
-    <script src="https://jeffersoncgo.github.io/cdn/base.js"></script> <script>
+    <script src="https://jeffersoncgo.github.io/cdn/js/base.js"></script> <script>
         var Config = { UserConfig: { ThemeIcons: true } }; // Example Config
         var JCGWeb = JCGWeb || {}; JCGWeb.PID = { id: 0, get id() { return this.id++; } }; // Simplified PID for example
     </script>
-    <script src="https://jeffersoncgo.github.io/cdn/windows.js"></script>
+    <script src="https://jeffersoncgo.github.io/cdn/js/windows.js"></script>
     <script>
         // Example 1: Create a simple custom window
         const myWindow = JCGWeb.Windows.AddWindow(); // Creates a window with default settings
@@ -336,7 +336,7 @@ Scripts for creating and managing interactive user interface elements.
         );
 
         // Example 3: Create an image viewer
-        // JCGWeb.Windows.CreateImageViewer('[https://your-cdn.com/https://jeffersoncgo.github.io/cdn/image.jpg](https://your-cdn.com/https://jeffersoncgo.github.io/cdn/image.jpg)');
+        // JCGWeb.Windows.CreateImageViewer('[https://your-cdn.com/https://jeffersoncgo.github.io/cdn/js/image.jpg](https://your-cdn.com/https://jeffersoncgo.github.io/cdn/js/image.jpg)');
 
         // Note: For viewers (image, PDF, video, audio, text), ensure necessary helper functions
         // like `MakeIconElement`, `FetchTextData`, `CreateMidiaElement` are correctly
@@ -386,13 +386,13 @@ Scripts for creating and managing interactive user interface elements.
 * **How to Use:**
 
     ```html
-    <script src="https://jeffersoncgo.github.io/cdn/utils.js"></script> <script>
+    <script src="https://jeffersoncgo.github.io/cdn/js/utils.js"></script> <script>
         // Simplified PID for example if not using base.js
         // var PID = function() { this.id_counter = 0; Object.defineProperty(this, 'id', { get: () => this.id_counter++ }); };
         // var PopuMessageManager = { getId: new PID() }; // Ensure PopuMessageManager.getId is set before popupmessage.js if not using base.js
     </script>
-    <script src="https://jeffersoncgo.github.io/cdn/popupmessage.js"></script>
-    <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/styles.css"> <script>
+    <script src="https://jeffersoncgo.github.io/cdn/js/popupmessage.js"></script>
+    <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/styles.css"> <script>
         // Simple message
         PopuMessageManager.addMessage('This is a notification!', 'System Update', 5000);
 
@@ -473,7 +473,7 @@ Scripts for creating and managing interactive user interface elements.
 
     **JavaScript:**
     ```html
-    <script src="https://jeffersoncgo.github.io/cdn/observer.js"></script> <script src="https://jeffersoncgo.github.io/cdn/TableSorter.js"></script>
+    <script src="https://jeffersoncgo.github.io/cdn/js/observer.js"></script> <script src="https://jeffersoncgo.github.io/cdn/js/TableSorter.js"></script>
     <script>
         // Define custom sort functions if needed, or use provided Sorters
         const customSortConfig = {
@@ -532,8 +532,8 @@ Scripts for creating and managing interactive user interface elements.
 * **How to Use:**
 
     ```html
-    <script src="https://jeffersoncgo.github.io/cdn/utils.js"></script> <script src="https://jeffersoncgo.github.io/cdn/treelist.js"></script>
-    <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/styles.css"> <div id="treeContainer"></div>
+    <script src="https://jeffersoncgo.github.io/cdn/js/utils.js"></script> <script src="https://jeffersoncgo.github.io/cdn/js/treelist.js"></script>
+    <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/styles.css"> <div id="treeContainer"></div>
 
     <button onclick="TreeListManager.OpenAll()">Open All</button>
     <button onclick="TreeListManager.CloseAll()">Close All</button>
@@ -614,7 +614,7 @@ Scripts for creating and managing interactive user interface elements.
     3.  A "brush" icon button will appear on the page. Clicking it opens the theme control panel.
 
     ```html
-    <script src="https://jeffersoncgo.github.io/cdn/utils.js"></script>       <script src="https://jeffersoncgo.github.io/cdn/controller.js"></script> <script src="https://jeffersoncgo.github.io/cdn/themeControl.js"></script>
+    <script src="https://jeffersoncgo.github.io/cdn/js/utils.js"></script>       <script src="https://jeffersoncgo.github.io/cdn/js/controller.js"></script> <script src="https://jeffersoncgo.github.io/cdn/js/themeControl.js"></script>
     <script>
         // The script initializes itself automatically.
         // A theme control button (brush icon) will be added to the page.
@@ -682,7 +682,7 @@ This script provides standalone functions for common object manipulation tasks s
     Include the script and call the functions directly.
 
     ```html
-    <script src="https://jeffersoncgo.github.io/cdn/object.js"></script>
+    <script src="https://jeffersoncgo.github.io/cdn/js/object.js"></script>
     <script>
         let user = {
             name: "John Doe",
@@ -759,7 +759,7 @@ This script provides standalone functions for common object manipulation tasks s
 
     **JavaScript:**
     ```html
-    <script src="https://jeffersoncgo.github.io/cdn/base.js"></script>       <script src="https://jeffersoncgo.github.io/cdn/observer.js"></script>   <script src="https://jeffersoncgo.github.io/cdn/controller.js"></script> <script src="https://jeffersoncgo.github.io/cdn/pagememory.js"></script>
+    <script src="https://jeffersoncgo.github.io/cdn/js/base.js"></script>       <script src="https://jeffersoncgo.github.io/cdn/js/observer.js"></script>   <script src="https://jeffersoncgo.github.io/cdn/js/controller.js"></script> <script src="https://jeffersoncgo.github.io/cdn/js/pagememory.js"></script>
     <script>
         // Define any custom trigger functions globally if used
         window.handleSpecialInputRestored = function(element) {
