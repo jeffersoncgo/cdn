@@ -3,9 +3,9 @@
 class utils {
   constructor() {}
   // SCRIPT NEED COMMONS
-  static get CurrentScriptUrl() {return document.currentScript.src}
-  static get CurrentScriptName() {return this.CurrentScriptUrl.split('/').pop()}
-  static CurrentUrlToFile(FileName) {return this.CurrentScriptUrl.replace(this.CurrentScriptName, FileName)}
+  static get CurrentScriptUrl() {return document.currentScript?.src}
+  static get CurrentScriptName() {return this.CurrentScriptUrl?.split('/').pop()}
+  static CurrentUrlToFile(FileName) {return this.CurrentScriptUrl?.replace(this.CurrentScriptName, FileName)}
   // URL 
   static get CurrentUrl() {return window.location.href}
   static get CurrentUrlPath() {return window.location.pathname}
