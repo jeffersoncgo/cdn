@@ -1,0 +1,30 @@
+details {
+  margin-left: 20px
+}
+
+details summary {
+  font-size: 20px;
+  cursor: pointer
+}
+
+details ul {
+  list-style-type: none;
+  margin: 5px;
+  padding-left: 15px
+}
+
+details li {
+  list-style-type: none;
+  font-size: 15px;
+  margin-left: 5px
+}
+
+details li::before {
+  content: "▸";
+  margin-right: 5px;
+  color: #999
+}
+
+details li.expanded::before {
+  content: "▾"
+}
