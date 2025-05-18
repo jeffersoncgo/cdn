@@ -11,7 +11,9 @@ class Controller {
     this.running = false;
     this.controller = null;
     this.timeout = null;
-    this.Controller = this;
+
+    this._resolve = null;
+    this._reject = null;
   }
 
   addEvent(event = "onDone", callback) {
@@ -40,44 +42,58 @@ class Controller {
   }
 
   exec(...params) {
-    if (this.running && !this.AbortBeforeRun) return;
+    if (this.running && !this.AbortBeforeRun) return Promise.resolve();
 
     if (this.timeout) {
       clearTimeout(this.timeout);
       this.abort(...params);
     }
 
-    this.timeout = setTimeout(async () => {
-      this.controller = new AbortController();
-      const signal = this.controller.signal;
+    return new Promise((resolve, reject) => {
+      this._resolve = resolve;
+      this._reject = reject;
 
-      this.running = true;
+      this.timeout = setTimeout(async () => {
+        this.controller = new AbortController();
+        const signal = this.controller.signal;
+        this.running = true;
 
-      try {
-        const result = await this.func(...params, signal);
-        this.execEvents('onDone', result, ...params);
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          this.execEvents('onError', error);
+        try {
+          const result = await this.func(...params, signal);
+          this.execEvents('onDone', result, ...params);
+          this._resolve?.(result);
+        } catch (error) {
+          if (error.name === 'AbortError') {} else {
+            this.execEvents('onError', error);
+            this._reject?.(error);
+          }
+        } finally {
+          this.running = false;
+          this.timeout = null;
+          this.controller = null;
+          this._resolve = null;
+          this._reject = null;
         }
-      } finally {
-        this.running = false;
-        this.timeout = null;
-      }
-    }, this.startDelayMs);
+      }, this.startDelayMs);
+    });
   }
 
   abort(...params) {
     if (this.controller && !this.controller.signal.aborted) {
       this.controller.abort();
     }
+
     if (this.timeout) {
       clearTimeout(this.timeout);
       this.timeout = null;
     }
-    this.controller = null;
+
     this.running = false;
     this.execEvents('onAbort', ...params);
+
+    this._resolve = null;
+    this._reject = null;
+    this.controller = null;
   }
 }
 
