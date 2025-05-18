@@ -6,23 +6,21 @@
     <title>JCGWEB CDN - Script Demonstrations</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/popupmessage.css" onerror="this.onerror=null;this.href=''; console.warn('popupmessage.css not found, using fallback styles.');">
-    <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/treelist.css" onerror="this.onerror=null;this.href=''; console.warn('treelist.css not found, using fallback styles.');">
-    <!-- <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/windows.css" onerror="this.onerror=null;this.href=''; console.warn('windows.css not found, using fallback styles.');"> -->
+    <link rel="stylesheet" href="js/popupmessage.css" onerror="this.onerror=null;this.href=''; console.warn('popupmessage.css not found, using fallback styles.');">
+    <link rel="stylesheet" href="js/treelist.css" onerror="this.onerror=null;this.href=''; console.warn('treelist.css not found, using fallback styles.');">
     <link rel="stylesheet" href="style.css" onerror="this.onerror=null;this.href=''; console.warn('treelist.css not found, using fallback styles.');">
 
-    <script src="https://jeffersoncgo.github.io/cdn/js/common.js"></script>
-    <script src="https://jeffersoncgo.github.io/cdn/js/base.js"></script>
-    <script src="https://jeffersoncgo.github.io/cdn/js/pid.js"></script>
-    <script src="https://jeffersoncgo.github.io/cdn/js/controller.js"></script>
-    <script src="https://jeffersoncgo.github.io/cdn/js/observer.js"></script>
-    <script src="https://jeffersoncgo.github.io/cdn/js/object.js"></script>
-    <script src="https://jeffersoncgo.github.io/cdn/js/popupmessage.js"></script>
-    <script src="https://jeffersoncgo.github.io/cdn/js/treelist.js"></script>
-    <script src="https://jeffersoncgo.github.io/cdn/js/TableSorter.js"></script>
-    <script src="https://jeffersoncgo.github.io/cdn/js/windows.js"></script>
-    <script src="https://jeffersoncgo.github.io/cdn/js/pagememory.js"></script>
-    <script src="https://jeffersoncgo.github.io/cdn/js/themeControl.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/base.js"></script>
+    <script src="js/pid.js"></script>
+    <script src="js/controller.js"></script>
+    <script src="js/observer.js"></script>
+    <script src="js/object.js"></script>
+    <script src="js/popupmessage.js"></script>
+    <script src="js/treelist.js"></script>
+    <script src="js/TableSorter.js"></script>
+    <script src="js/pagememory.js"></script>
+    <script src="js/themeControl.js"></script>
 
 </head>
 <body class="p-4 md:p-8">
@@ -43,6 +41,8 @@
                 <p><strong>Current Page Path:</strong> <span id="common-page-path">Loading...</span></p>
 
                 <h3>makeObjbyPath:</h3>
+                <p><input type="text" id="common-makeobjpath-input" placeholder="Enter the dot separated path: e.g., test.deep.property" value="test.deep.property"></p>
+                <p><input type="text" id="common-makeobjvalue-input" placeholder="Enter the value to set: e.g., Hello World!" value="Hello World!"></p>
                 <button onclick="demoMakeObjByPath()">Create Nested Object</button>
                 <p>Result: <span id="common-makeobj-result"></span></p>
 
@@ -80,8 +80,19 @@
                 <p>Check console and log below for messages.</p>
                 <h3>Log:</h3>
                 <div id="controller-log" class="output-log">Controller log...</div>
+                <div id="searchData">
+                    <input type="text" id="searchInput" placeholder="Search..." />
+                    <div class="checkbox-container" id="fieldSelector">
+                        <!-- Fields will be added here -->
+                    </div>
+                <button onclick="TreeListManager.OpenAll()">Open All</button>
+                <button onclick="TreeListManager.CloseAll()">Close All</button>
+                    <div id="searchResult">
+                        Search Results will appear here...
+                    </div>
+                </div>
             </div>
-        </section>
+            </section>
 
         <section class="script-section" id="base-demo">
             <h2>🔩 base.js</h2>

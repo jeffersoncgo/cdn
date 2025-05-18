@@ -67,9 +67,9 @@ class pageMemory {
 
 
         // initialize the page memory with a delay
-        this.savePageInfo = new Controller(this.savePageInfo.bind(this), null, null, null, true)
+        this.savePageInfo = new Controller(this.savePageInfo.bind(this))
         this.savePageInfo = this.savePageInfo.exec.bind(this.savePageInfo);
-        this.restorePageInfo = new Controller(this.restorePageInfo.bind(this), null, null, null, true)
+        this.restorePageInfo = new Controller(this.restorePageInfo.bind(this))
         this.restorePageInfo = this.restorePageInfo.exec.bind(this.restorePageInfo);
 
         this.observers = [];

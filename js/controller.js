@@ -1,50 +1,84 @@
 class Controller {
-  constructor(func, ondone, onerror, onabort, AbortPreviousOnExecute = false) {
+  constructor(func, AbortBeforeRun = true, startDelayMs = 0) {
     this.func = func;
-    this.ondone = ondone;
-    this.onabort = onabort;
-    this.onerror = onerror;
+    this.events = {
+      onDone: [],
+      onAbort: [],
+      onError: []
+    };
+    this.startDelayMs = startDelayMs;
+    this.AbortBeforeRun = AbortBeforeRun;
     this.running = false;
     this.controller = null;
     this.timeout = null;
-    this.AbortPreviousOnExecute = AbortPreviousOnExecute;
+    this.Controller = this;
   }
 
-  static bind(func, ondone, onerror, onabort, AbortPreviousOnExecute = false) {
-    func = func.bind(this);
-    func = new Controller(func.bind(this), ondone, onerror, onabort, AbortPreviousOnExecute)
-    func = func.exec.bind(func);
-    return func;
+  addEvent(event = "onDone", callback) {
+    this.events[event].push(callback);
   }
 
-  async exec(...params) {
-    if (this.running && !this.AbortPreviousOnExecute) return;
-    if(this.running)
-      this.abort(...params);
-    this.controller = new AbortController();
-    const signal = this.controller.signal;
-    try {
-      this.running = true;
-      const result = await this.func(...params, signal);
-      if (this.ondone) this.ondone(result, ...params)
-      return result;
-    } catch (error) {
-      if (error.name !== 'AbortError') {
-        if (this.onerror) this.onerror(error);
-        throw error;
+  deleteEvent(event = "onDone", callback) {
+    const index = this.events[event].indexOf(callback);
+    if (index !== -1) {
+      this.events[event].splice(index, 1);
+    }
+  }
+
+  clearEvents(event = "onDone") {
+    this.events[event] = [];
+  }
+
+  execEvents(event, ...params) {
+    this.events[event].forEach(callback => {
+      try {
+        callback(...params);
+      } catch (error) {
+        console.error(error);
       }
-    } finally { this.running = false }
+    });
+  }
+
+  exec(...params) {
+    if (this.running && !this.AbortBeforeRun) return;
+
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+      this.abort(...params);
+    }
+
+    this.timeout = setTimeout(async () => {
+      this.controller = new AbortController();
+      const signal = this.controller.signal;
+
+      this.running = true;
+
+      try {
+        const result = await this.func(...params, signal);
+        this.execEvents('onDone', result, ...params);
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          this.execEvents('onError', error);
+        }
+      } finally {
+        this.running = false;
+        this.timeout = null;
+      }
+    }, this.startDelayMs);
   }
 
   abort(...params) {
     if (this.controller && !this.controller.signal.aborted) {
       this.controller.abort();
     }
-    if (this.timeout) clearTimeout(this.timeout);
-    this.timeout = null;
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+      this.timeout = null;
+    }
     this.controller = null;
-    if (this.onabort) this.onabort(...params)
+    this.running = false;
+    this.execEvents('onAbort', ...params);
   }
 }
 
-if (typeof module != 'undefined') module.exports = Controller;
+if (typeof module !== 'undefined') module.exports = Controller;

@@ -21,7 +21,7 @@ JCGWeb.Functions.MakeSafePos = (width, height, left, top, parent = document.body
 	height = parseFloat(height);
 	left = parseFloat(left);
 	top = parseFloat(top);
-	let parentInfo = GetElementDimensions(parent);
+	let parentInfo = JCGWeb.Functions.GetElementDimensions(parent);
 	if (left + width > parentInfo.width)
 		left = parentInfo.width - width;
 	if (top + height > parentInfo.height)

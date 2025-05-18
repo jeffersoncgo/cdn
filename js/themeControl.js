@@ -1,5 +1,7 @@
 utils.AddStyle(utils.CurrentUrlToFile('themeControl.css'));
-const themeSliderControl = new Controller(shiftTheme, null, null, null, true);
+var themeSliderControl = new Controller(shiftTheme.bind(this));
+themeSliderControl = themeSliderControl.exec.bind(themeSliderControl);
+
 let themeShifted = 1;
 
 let themeCtrl_Themes = {};
@@ -360,7 +362,7 @@ function showThemeControl() {
     slider.value = 0;
     slider.step = 1;
     slider.oninput = () => {
-      themeSliderControl.exec(slider.value - themeShifted)
+      themeSliderControl(slider.value - themeShifted)
       themeShifted = slider.value;
     };
 

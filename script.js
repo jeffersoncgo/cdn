@@ -14,10 +14,31 @@ if (typeof utils !== 'undefined') {
   });
 }
 
+async function getDummyData() {
+  const response = await fetch("dummy/users.json")
+  const data = (await response.json())["users"];
+  const allFields = flattenKeys(data[0]);
+  const fieldSelector = document.getElementById('fieldSelector');
+  allFields.forEach(field => {
+    const label = document.createElement('label');
+    label.innerHTML = `<input type="checkbox" value="${field}" checked> ${field}`;
+    fieldSelector.appendChild(label);
+    fieldSelector.appendChild(document.createElement('br'));
+  });
+  return data;
+}
+
 function demoMakeObjByPath() {
-  let obj = {};
-  utils.makeObjbyPath(obj, 'test.deep.property', 'Hello from common.js!');
-  document.getElementById('common-makeobj-result').textContent = JSON.stringify(obj);
+  try {
+    let obj = {};
+    const path = document.getElementById('common-makeobjpath-input').value;
+    const value = document.getElementById('common-makeobjvalue-input').value;
+    utils.makeObjbyPath(obj, path, value);
+    document.getElementById('common-makeobj-result').textContent = JSON.stringify(obj);
+  } catch (error) {
+    document.getElementById('common-makeobj-result').textContent = error.message
+    console.error(error);
+  }
 }
 function demoSafeFilename() {
   const input = document.getElementById('common-filename-input').value;
@@ -61,34 +82,91 @@ function observerDemoAddChild() {
   el.appendChild(newChild);
 }
 
+  let demoAsyncFunc = async query => {
+    const delay = query === 'fast_query' ? 500 : 2000;
+    demoAsyncFunc.Controller.startDelayMs = delay;
+    controllerLogOutput.innerHTML = `Starting fetch for: ${query} (will take ${delay}ms)<br>` + controllerLogOutput.innerHTML;
+    await new Promise(resolve => setTimeout(resolve, delay));
+    return `Data for ${query}`;
+  }
+
+  let SearchFunction = async function () {
+    const input = document.getElementById('searchInput').value;
+    const fields = [...document.querySelectorAll('#fieldSelector input:checked')]
+      .map(cb => cb.value);
+
+    console.log(window.users)
+    const results = searchInArray(window.users, input, fields);
+    return results;
+  };
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    window.users = await getDummyData();
+  });
 
 // --- controller.js Demo ---
 let controllerLogOutput;
 if (typeof Controller !== 'undefined') {
   controllerLogOutput = document.getElementById('controller-log');
-  async function demoAsyncFunc(query, signal) {
-    const delay = query === 'fast_query' ? 500 : 2000;
-    controllerLogOutput.innerHTML = `Starting fetch for: ${query} (will take ${delay}ms)<br>` + controllerLogOutput.innerHTML;
-    await new Promise(resolve => setTimeout(resolve, delay));
-    if (signal.aborted) {
-      controllerLogOutput.innerHTML = `Fetch ABORTED for: ${query}<br>` + controllerLogOutput.innerHTML;
-      throw new DOMException('Aborted by Controller', 'AbortError');
-    }
-    return `Data for ${query}`;
-  }
-  const demoController = new Controller(
-    demoAsyncFunc,
-    (result, query) => { controllerLogOutput.innerHTML = `SUCCESS: ${result} (Original: ${query})<br>` + controllerLogOutput.innerHTML; },
-    (error) => { controllerLogOutput.innerHTML = `ERROR: ${error.message}<br>` + controllerLogOutput.innerHTML; },
-    (query) => { controllerLogOutput.innerHTML = `ABORTED by new call (Original: ${query})<br>` + controllerLogOutput.innerHTML; },
-    true // AbortPreviousOnExecute = true
-  );
+
+  const demoController = new Controller(demoAsyncFunc.bind(this));
+  demoAsyncFunc = demoController
+
+  demoAsyncFunc.addEvent("onDone", (result, query) => controllerLogOutput.innerHTML = `SUCCESS: ${result} (Original: ${query})<br>` + controllerLogOutput.innerHTML)
+  demoAsyncFunc.addEvent("onError", (error) => controllerLogOutput.innerHTML = `ERROR: ${error.message}<br>` + controllerLogOutput.innerHTML)
+  demoAsyncFunc.addEvent("onAbort", (query) => controllerLogOutput.innerHTML = `ABORTED by new call (Original: ${query})<br>` + controllerLogOutput.innerHTML)
+
+  demoAsyncFunc.startDelayMs = 0
+
+  demoAsyncFunc = demoAsyncFunc.exec.bind(demoAsyncFunc);
+
+  demoAsyncFunc.Controller = demoController;
+
+
   window.demoControlledFetch = (query) => {
-    demoController.exec(query);
+    demoAsyncFunc(query);
     if (query === 'slow_query') {
-      setTimeout(() => demoController.exec('fast_query_interrupts_slow'), 700);
+      demoAsyncFunc.Controller.startDelayMs = 2000;
+      demoAsyncFunc('fast_query_interrupts_slow');
+    } else {
+      demoAsyncFunc.Controller.startDelayMs = 0;
+      demoAsyncFunc(query);
     }
   };
+
+  // 🧠 Controller-bound Search Function
+
+
+  // 📡 Bind via Controller
+  const SearchController = new Controller(SearchFunction.bind(this));
+  SearchFunction = SearchController;
+
+  const searchResult = document.getElementById('searchResult');
+
+  SearchFunction.addEvent("onDone", (result) => {
+    TreeListManager.TreeHTML(result).then(() => {
+      searchResult.innerHTML = ''; // Clear previous
+      searchResult.appendChild(TreeListManager.document);
+    });
+  });
+
+  SearchFunction.addEvent("onError", (error) => {
+    searchResult.innerHTML = `ERROR: ${error.message}<br>`;
+  });
+
+  SearchFunction.startDelayMs = 300;
+  SearchFunction = SearchFunction.exec.bind(SearchFunction);
+  SearchFunction.Controller = SearchController;
+
+
+  // 🎯 Trigger search as user types or changes checkboxes
+  document.getElementById('searchInput').addEventListener('input', () => {
+    SearchFunction();
+  });
+  fieldSelector.addEventListener('change', () => {
+    SearchFunction();
+  });
+    
 } else {
   console.error("Controller class not loaded.");
 }
@@ -112,11 +190,11 @@ if (typeof JCGWeb !== 'undefined' && JCGWeb.Variables && JCGWeb.Variables.Mouse)
   document.getElementById('base-find-child-btn').addEventListener('click', (event) => {
     const parentDiv = JCGWeb.Functions.FindComponentFromEvent(event, 'id', 'base-find-parent');
     if (parentDiv) {
-      alert('Parent with ID "base-find-parent" found!');
+      console.log('Parent with ID "base-find-parent" found!');
       parentDiv.style.border = '2px solid red';
       setTimeout(() => parentDiv.style.border = '', 2000);
     } else {
-      alert('Parent not found.');
+      console.log('Parent not found.');
     }
   });
   // For getUniqueSelectorOnClick
@@ -228,46 +306,13 @@ if (typeof TableSorter !== 'undefined' && typeof Sorters !== 'undefined') {
   console.error("TableSorter or Sorters not loaded.");
 }
 
-// --- windows.js Demo ---
-if (typeof JCGWeb !== 'undefined' && JCGWeb.Windows) {
-  window.demoCreateWindow = () => {
-    const win = JCGWeb.Windows.AddWindow();
-    win.title = "Demo Window";
-    win.icon = "<span>📄</span>"; // Simple icon
-    const content = document.createElement('p');
-    content.innerHTML = "This is a window created by <strong>windows.js</strong>. You can drag it by its title bar.";
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.placeholder = 'Type here...';
-    win._elements = [content, input];
-    win._buttons = ['info', 'minimize', 'maximize', 'close']; // Use default buttons
-    win.Create_Window();
-    win.Show(undefined, undefined, '400px', '200px', true); // Show centered
-  };
-
-  window.demoCreatePopup = () => {
-    JCGWeb.Windows.CreatePopup(
-      "Confirmation",
-      "Are you sure you want to perform this action?",
-      "<span>❓</span>", // Icon
-      true, // Close button
-      "Yes, Proceed",
-      (e) => { alert('Proceed clicked!'); JCGWeb.Windows.CloseWindowByEvent(e); },
-      "No, Cancel",
-      (e) => { alert('Cancel clicked!'); JCGWeb.Windows.CloseWindowByEvent(e); }
-    );
-  };
-} else {
-  console.error("JCGWeb.Windows not loaded.");
-}
-
 // --- pagememory.js Demo ---
 let pageMemoryInstance;
 if (typeof pageMemory !== 'undefined') {
   pageMemoryInstance = new pageMemory(); // Initialize
   window.myCustomTriggerHandler = function (element) {
     console.log(`Custom trigger for ${element.id}! Its value is: ${element.value}`);
-    alert(`PageMemory custom trigger fired for element ID: ${element.id}\nValue: ${element.value}`);
+    console.log(`PageMemory custom trigger fired for element ID: ${element.id}\nValue: ${element.value}`);
     element.style.border = "2px solid green";
     setTimeout(() => element.style.border = "", 2000);
   };

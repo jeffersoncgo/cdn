@@ -6,6 +6,28 @@ const MakeObjFromPath = (path, value, obj, spliter = '.') => {
   lastObj[last] = value;
   return obj;
 }
+function flattenValues(obj, prefix = '') {
+  let values = [];
+  for (const [key, value] of Object.entries(obj)) {
+    const currentPath = prefix ? `${prefix}.${key}` : key;
+    if (typeof value === 'object' && value !== null) {
+      values = values.concat(flattenValues(value, currentPath));
+    } else {
+      values.push({ path: currentPath, value: String(value) });
+    }
+  }
+  return values;
+}
+
+function flattenKeys(obj, path = '') {
+  return Object.entries(obj).flatMap(([key, val]) => {
+    const fullPath = path ? `${path}.${key}` : key;
+    return (val && typeof val === 'object' && !Array.isArray(val))
+      ? flattenKeys(val, fullPath)
+      : [fullPath];
+  });
+}
+
 function cleanObject(obj) {
   for (let key in obj) {
     if (obj[key] === null || obj[key] === undefined || obj[key] === '') {
@@ -47,11 +69,30 @@ function mergeObjects(obj1, obj2, seen = new WeakSet()) {
   return obj1;
 }
 
+/**
+ * Main search function.
+ * @param {Array<Object>} dataArray - Array of data objects.
+ * @param {string} query - Search term (case insensitive).
+ * @param {Array<string>} [fields] - Optional list of fields to search (dot notation), or all if omitted.
+ * @returns {Array<Object>} - Filtered array that match the query.
+ */
+function searchInArray(dataArray, query, fields = null) {
+  const normalizedQuery = query.toLowerCase();
+  return dataArray.filter(data => {
+    const flattened = flattenValues(data);
 
+    return flattened.some(({ path, value }) => {
+      const inFields = !fields || fields.includes(path);
+      return inFields && value.toLowerCase().includes(normalizedQuery);
+    });
+  });
+}
 
 if (typeof module != 'undefined') module.exports = {
   GetValueFromPath,
   MakeObjFromPath,
   cleanObject,
-  mergeObjects
+  mergeObjects,
+  flattenKeys,
+  flattenValues
 };
