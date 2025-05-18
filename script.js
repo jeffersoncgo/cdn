@@ -192,7 +192,7 @@ if (typeof TreeListManager !== 'undefined') {
     "Notes/ideas.txt": "Some quick notes here"
   };
   TreeListManager.TreeHTML(treeJsonData).then(html => {
-    document.getElementById('treeContainer').innerHTML = html;
+    document.getElementById('treeContainer').appendChild(TreeListManager.document);
   });
 } else {
   console.error("TreeListManager not loaded.");
