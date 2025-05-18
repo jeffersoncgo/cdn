@@ -32,13 +32,14 @@ function cleanObject(obj) {
 }
 
 
-function mergeObjects(obj1, obj2) {
+function mergeObjects(obj1, obj2, seen = new WeakSet()) {
+  if (seen.has(obj2)) return obj1;
+  seen.add(obj2);
+
   for (let key in obj2) {
-    if (typeof obj2[key] === 'object' && !Array.isArray(obj2[key])) {
-      if (!obj1[key]) {
-        obj1[key] = {};
-      }
-      obj1[key] = merge(obj1[key], obj2[key]);
+    if (typeof obj2[key] === 'object' && obj2[key] !== null && !Array.isArray(obj2[key])) {
+      if (!obj1[key]) obj1[key] = {};
+      obj1[key] = mergeObjects(obj1[key], obj2[key], seen);
     } else {
       obj1[key] = obj2[key];
     }

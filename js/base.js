@@ -129,6 +129,24 @@ JCGWeb.Functions.getUniqueSelectorOnClick = () => {
   });
 }
 
+JCGWeb.Functions.GetElementDimensions = element => {
+	if (element === document.body || element === document.documentElement) {
+		return {
+			width: window.innerWidth,
+			height: window.innerHeight,
+			top: 0,
+			left: 0
+		};
+	}
+	const rect = element.getBoundingClientRect();
+	return {
+		width: rect.width,
+		height: rect.height,
+		top: rect.top + window.scrollY,
+		left: rect.left + window.scrollX
+	};
+}
+
 function OnPageLoad() {
 	JCGWeb.Observer = new Observer(document.body);
   JCGWeb.Observer.AddCallBack(JCGWeb.Functions.toObeserverGetMousePos);

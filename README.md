@@ -1,6 +1,6 @@
-# 🚀 J's CDN - Client-Side JavaScript Utilities
+# 🚀 JCGWEB CDN - Client-Side JavaScript Utilities
 
-Welcome to J's CDN! This repository hosts a collection of versatile JavaScript scripts designed for client-side web development. These utilities aim to simplify common tasks, enhance user interfaces, and manage application state with ease.
+Welcome to JCGWEB CDN! This repository hosts a collection of versatile JavaScript scripts designed for client-side web development. These utilities aim to simplify common tasks, enhance user interfaces, and manage application state with ease.
 
 ---
 

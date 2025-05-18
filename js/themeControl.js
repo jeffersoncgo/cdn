@@ -383,6 +383,6 @@ function showThemeControl() {
 }
 
 
-createThemeControlButton();
+document.addEventListener('DOMContentLoaded', createThemeControlButton);
 
 setTimeout(() => themeCtrl_loadTheme(), 100);

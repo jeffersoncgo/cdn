@@ -60,4 +60,6 @@ const PopuMessageManager = {
 }
 
 PopuMessageManager.messageHolder.id = 'messageHolder';
-document.body.appendChild(PopuMessageManager.messageHolder);
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.appendChild(PopuMessageManager.messageHolder);
+});
