@@ -6,7 +6,7 @@ Welcome to J's CDN! This repository hosts a collection of versatile JavaScript s
 
 ## 📜 General Usage
 
-To use any of these scripts in your project, you can include them directly via a `<script>` tag, pointing to their location in this CDN (once hosted, e.g., via GitHub Pages).
+To use any of these scripts in your project, you can include them directly via a `<script>` tag, pointing to their location in this CDN.
 
 ```html
 <script src="[https://your-username.github.io/cdn/path/to/script.js](https://your-username.github.io/cdn/path/to/script.js)"></script>
