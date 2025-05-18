@@ -1,4 +1,4 @@
-utils.AddStyle(utils.CurrentUrlToFile('styles.css'));
+utils.AddStyle(utils.CurrentUrlToFile('treelist.css'));
 class TreeListCreator {
   constructor() {
     this.document = document.createElement('div');

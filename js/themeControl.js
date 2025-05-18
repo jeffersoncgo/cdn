@@ -1,4 +1,4 @@
-utils.AddStyle(utils.CurrentUrlToFile('styles.css'));
+utils.AddStyle(utils.CurrentUrlToFile('themeControl.css'));
 const themeSliderControl = new Controller(shiftTheme, null, null, null, true);
 let themeShifted = 1;
 

@@ -1,4 +1,4 @@
-utils.AddStyle(utils.CurrentUrlToFile('styles.css'));
+utils.AddStyle(utils.CurrentUrlToFile('popupmessage.css'));
 
 class PopupMessage {
   constructor(message = '', title = '', durationMs = 3000, triggers = {}) {
