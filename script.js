@@ -199,11 +199,29 @@ if (typeof TreeListManager !== 'undefined') {
 }
 
 // --- TableSorter.js Demo ---
+//The colors of a rainbow appear in a specific order: red, orange, yellow, green, blue, indigo, and violet.
+const RainbowSort = (x, y, Descending) => {
+  const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet'];
+  let xValue = x.getAttribute('_sortValue');
+  if (xValue == null) {
+    xValue = colors.indexOf(x.innerText.toLowerCase());
+    x.setAttribute('_sortValue', xValue);
+  }
+  let yValue = y.getAttribute('_sortValue');
+  if (yValue == null) {
+    yValue = colors.indexOf(y.innerText.toLowerCase());
+    y.setAttribute('_sortValue', yValue);
+  }
+  const result = parseInt(xValue) - parseInt(yValue)
+  return Descending ? -result : result;
+} 
+
 if (typeof TableSorter !== 'undefined' && typeof Sorters !== 'undefined') {
   const sortConfig = {
     'Name': Sorters.Default,
     'Age': Sorters.Number,
     'JoinDate': Sorters.Date,
+    'RainbowColor': RainbowSort
   };
   new TableSorter('demoSortableTable', sortConfig, false);
 } else {

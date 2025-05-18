@@ -82,16 +82,20 @@ function hslToRgb(h, s, l) {
 
 
 function invertHexColor(color) {
-  if(!isValidHex(color)) {
-    console.error(`Invalid hex color: ${color}`);
-    return color;
-  }
-  const [, r, g, b] = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})/i.exec(color);
-  if (!r || !g || !b) {
-    console.error(`Invalid hex color: ${color}`);
-    return color;
-  };
-  return `rgb(${255 - parseInt(r, 16)}, ${255 - parseInt(g, 16)}, ${255 - parseInt(b, 16)})`;
+  try {
+    if(!color)
+      return
+    if(!isValidHex(color)) {
+      console.error(`Invalid hex color: ${color}`);
+      return color;
+    }
+    const [, r, g, b] = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})/i?.exec(color);
+    if (!r || !g || !b) {
+      console.error(`Invalid hex color: ${color}`);
+      return color;
+    };
+    return `rgb(${255 - parseInt(r, 16)}, ${255 - parseInt(g, 16)}, ${255 - parseInt(b, 16)})`;
+  } catch (error) {}
 }
 
 function shiftColor(color, angle) {

@@ -123,7 +123,6 @@ JCGWeb.Functions.getUniqueSelectorOnClick = () => {
   this.page.addEventListener('click', (e) => {
     const selector = JCGWeb.Functions.getUniqueSelector(e.target);
     if (selector) {
-      console.log(selector);
       this.page.setAttribute('data-clicked-selector', selector);
     }
   });

@@ -159,6 +159,7 @@
         <section class="script-section" id="tablesorter-demo">
             <h2>📊 TableSorter.js</h2>
             <p>Adds client-side sorting functionality to HTML tables. Click on table headers to sort.</p>
+            <p>Color sort order is the same as the rainbow: red, orange, yellow, green, blue, indigo, and violet</p>
             <div class="demo-area">
                 <table id="demoSortableTable" class="w-full">
                     <thead>
@@ -167,25 +168,61 @@
                             <th sorttitle="Age" data-sorttype="Number">Age</th>
                             <th sorttitle="JoinDate" data-sorttype="Date">Join Date</th>
                             <th _sortignore>Action</th>
+                            <th sorttitle="RainbowColor" data-sorttype="Color">Color</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td>Charlie Brown</td><td>8</td><td>2022-03-15</td><td>View</td></tr>
-                        <tr><td>Alice Wonderland</td><td>30</td><td>2021-07-22</td><td>View</td></tr>
-                        <tr><td>Bob The Builder</td><td>45</td><td>2020-01-10</td><td>View</td></tr>
-                        <tr><td>Eve Harrington</td><td>28</td><td>2023-11-05</td><td>View</td></tr>
+                      <tr>
+                        <td>Charlie Brown</td>
+                        <td>8</td>
+                        <td>2022-03-15</td>
+                        <td>View</td>
+                        <td style="color: red">red</td>
+                      </tr>
+                      <tr>
+                        <td>Alice Wonderland</td>
+                        <td>30</td>
+                        <td>2021-07-22</td>
+                        <td>View</td>
+                        <td style="color: yellow">yellow</td>
+                      </tr>
+                      <tr>
+                        <td>Bob The Builder</td>
+                        <td>45</td>
+                        <td>2020-01-10</td>
+                        <td>View</td>
+                        <td style="color: blue">blue</td>
+                      </tr>
+                      <tr>
+                        <td>Eve Harrington</td>
+                        <td>28</td>
+                        <td>2023-11-05</td>
+                        <td>View</td>
+                        <td style="color: violet">violet</td>
+                      </tr>
+                      <tr>
+                        <td>Jhon Doe</td>
+                        <td>42</td>
+                        <td>2018-06-01</td>
+                        <td>View</td>
+                        <td style="color: orange">orange</td>
+                      </tr>
+                      <tr>
+                        <td>Rose Barnett</td>
+                        <td>22</td>
+                        <td>2024-08-21</td>
+                        <td>View</td>
+                        <td style="color: green">green</td>
+                      </tr>
+                      <tr>
+                        <td>Luis Stone</td>
+                        <td>27</td>
+                        <td>2021-11-05</td>
+                        <td>View</td>
+                        <td style="color: indigo">indigo</td>
+                      </tr>
                     </tbody>
                 </table>
-            </div>
-        </section>
-
-        <section class="script-section" id="windows-demo">
-            <h2>🖼️ windows.js</h2>
-            <p>System for creating and managing draggable, resizable windows or dialogs.</p>
-            <div class="demo-area">
-                <button onclick="demoCreateWindow()">Create Basic Window</button>
-                <button onclick="demoCreatePopup()">Create Confirmation Popup</button>
-                <p>Windows will appear on the page. Ensure no ad-blockers are interfering with popup creation.</p>
             </div>
         </section>
 
