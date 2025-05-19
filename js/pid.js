@@ -11,5 +11,5 @@ class PID {
   }
 }
 
-if (typeof JCGWeb != 'undefined') JCGWeb.PID = new PID();
-if (typeof module != 'undefined') module.exports = Controller;
+if (typeof JCGWeb != 'undefined')
+  JCGWeb.PID = new PID();

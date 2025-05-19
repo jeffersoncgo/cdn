@@ -65,6 +65,13 @@ class pageMemory {
         this.autoSaveInterval = null;
         this.autoSaveDelay = 5000; // 5 seconds
 
+        this.events = {
+            onSaveMemory: [],
+            onRestoreSucess: [],
+            onRestoreError: [],
+            onMemoryIsEmpty: [],
+        }
+
 
         // initialize the page memory with a delay
         this.savePageInfo = new Controller(this.savePageInfo.bind(this))
@@ -72,8 +79,12 @@ class pageMemory {
         this.restorePageInfo = new Controller(this.restorePageInfo.bind(this))
         this.restorePageInfo = this.restorePageInfo.exec.bind(this.restorePageInfo);
 
+        this.addEvent = JCGWeb.Functions.addEvent;
+        this.deleteEvent = JCGWeb.Functions.deleteEvent;
+        this.clearEvents = JCGWeb.Functions.clearEvents;
+        this.execEvents = JCGWeb.Functions.execEvents;
+
         this.observers = [];
-        this.init();
     }
 
     init() {
@@ -161,12 +172,12 @@ class pageMemory {
             const savedElements = this.getElementsToSave();
 
             this.setPreviousPageInfo(title, url, dom, savedElements);
-
-            // Save to localStorage
-            localStorage.setItem(this.storageKey, JSON.stringify({
+            const data = {
                 url: url,
                 data: savedElements
-            }));
+            };
+            localStorage.setItem(this.storageKey, JSON.stringify(data));
+            this.execEvents('onSaveMemory', data);
             return true;
         } catch (error) {
             console.error('Error saving page info:', error);
@@ -236,15 +247,20 @@ class pageMemory {
     restorePageInfo() {
         try {
             const savedData = localStorage.getItem(this.storageKey);
-            if (!savedData) return false;
+            if (!savedData) {
+                this.execEvents('onMemoryIsEmpty');
+                return false;
+            };
 
             const parsedData = JSON.parse(savedData);
 
             // Only restore if we're on the same page
             if (parsedData.url === window.location.href) {
                 this.restoreElements(parsedData.data);
+                this.execEvents('onRestoreSucess', parsedData);
                 return true;
             }
+            this.execEvents('onRestoreError', parsedData);
             return false;
         } catch (error) {
             console.error('Error restoring page info:', error);

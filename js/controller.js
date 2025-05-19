@@ -14,31 +14,11 @@ class Controller {
 
     this._resolve = null;
     this._reject = null;
-  }
 
-  addEvent(event = "onDone", callback) {
-    this.events[event].push(callback);
-  }
-
-  deleteEvent(event = "onDone", callback) {
-    const index = this.events[event].indexOf(callback);
-    if (index !== -1) {
-      this.events[event].splice(index, 1);
-    }
-  }
-
-  clearEvents(event = "onDone") {
-    this.events[event] = [];
-  }
-
-  execEvents(event, ...params) {
-    this.events[event].forEach(callback => {
-      try {
-        callback(...params);
-      } catch (error) {
-        console.error(error);
-      }
-    });
+    this.addEvent = JCGWeb.Functions.addEvent;
+    this.deleteEvent = JCGWeb.Functions.deleteEvent;
+    this.clearEvents = JCGWeb.Functions.clearEvents;
+    this.execEvents = JCGWeb.Functions.execEvents;
   }
 
   exec(...params) {

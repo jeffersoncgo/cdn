@@ -88,11 +88,38 @@ function searchInArray(dataArray, query, fields = null) {
   });
 }
 
+JCGWeb.Functions.addEvent = function (event = "onDone", callback) {
+  this.events[event].push(callback);
+}
+
+JCGWeb.Functions.deleteEvent = function (event = "onDone", callback) { 
+  const index = this.events[event].indexOf(callback);
+  if (index !== -1) {
+    this.events[event].splice(index, 1);
+  }
+}
+
+JCGWeb.Functions.clearEvents = function (event = "onDone") {
+  this.events[event] = [];
+}
+
+JCGWeb.Functions.execEvents = function (event, ...params) {
+  this.events[event].forEach(callback => {
+    try {
+      callback(...params);
+    } catch (error) {
+      console.error(error);
+    }
+  });
+}
+
+
 if (typeof module != 'undefined') module.exports = {
   GetValueFromPath,
   MakeObjFromPath,
   cleanObject,
   mergeObjects,
   flattenKeys,
-  flattenValues
+  flattenValues,
+  searchInArray,
 };

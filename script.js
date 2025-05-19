@@ -1,3 +1,12 @@
+if (typeof module != 'undefined') {
+  Observer = require("./observer");
+  Controller = require("./controller");
+  TreeListManager = require("./treelist");
+  TableSorter = require("./tablesorter");
+  pageMemory = require("./pagememory");
+}
+
+
 document.getElementById('currentYear').textContent = new Date().getFullYear();
 
 // --- common.js Demo ---
@@ -310,6 +319,12 @@ if (typeof TableSorter !== 'undefined' && typeof Sorters !== 'undefined') {
 let pageMemoryInstance;
 if (typeof pageMemory !== 'undefined') {
   pageMemoryInstance = new pageMemory(); // Initialize
+  pageMemoryInstance.addEvent('onMemoryIsEmpty', () => console.log('Memory was empty'))
+  pageMemoryInstance.addEvent('onRestoreSucess', () => console.log('Memory restored'))
+  pageMemoryInstance.addEvent('onRestoreError', () => console.log('Could not restore memory'))
+  pageMemoryInstance.addEvent('onSaveMemory', () => console.log('Memory was saved'))
+  pageMemoryInstance.init();
+
   window.myCustomTriggerHandler = function (element) {
     console.log(`Custom trigger for ${element.id}! Its value is: ${element.value}`);
     console.log(`PageMemory custom trigger fired for element ID: ${element.id}\nValue: ${element.value}`);
