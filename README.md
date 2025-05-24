@@ -9,7 +9,7 @@ Welcome to JCGWEB CDN! This repository hosts a collection of versatile JavaScrip
 To use any of these scripts in your project, you can include them directly via a `<script>` tag, pointing to their location in this CDN.
 
 ```html
-<script src="[https://jeffersoncgo.github.io/cdn/js/script.js](https://jeffersoncgo.github.io/cdn/js/script.js)"></script>
+<script src="https://jeffersoncgo.github.io/cdn/js/script.js"></script>
 ```
 
 Ensure that dependencies are loaded before the scripts that rely on them. For example, `base.js` and `common.js` are often prerequisites for other scripts.
