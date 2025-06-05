@@ -1,81 +1,113 @@
 # 🚀 README AI - cdn
 
-This repository serves as a collection of reusable client-side JavaScript utilities, components, and demonstration assets designed to enhance web application functionality and user experience. It provides a structured set of tools for common web development tasks, including DOM manipulation, event handling, state management, data visualization (tree lists), dynamic styling (theme control), interactive table sorting, and asynchronous operation management. The project includes static JSON files for mock data and a demonstration `index.html` with associated `script.js` and CSS files (`style.css`, component-specific CSS) to showcase the integration and usage of these components in a practical web context. This collection is intended to be included directly in web projects, acting as a Content Delivery Network (CDN)-like source for shared functionality.
+This repository houses a collection of client-side JavaScript utilities, CSS styles, and sample data designed for web development projects. The core purpose of these files is to provide reusable components and helper functions to address common frontend challenges, such as DOM manipulation, state management, asynchronous task control, dynamic styling, and data presentation. It serves as a potential 'cdn' (Content Delivery Network) source for integrating these utilities into various web applications, offering a structured and organized approach to enhancing user interfaces and managing client-side logic effectively.
 
-## Table of Contents
+## 📄 Table of Contents
 
-*   [Installation / Setup](#installation--setup)
-*   [Project Structure](#project-structure)
-*   [Detailed Usage / API Documentation](#detailed-usage--api-documentation)
-    *   [✨ Core Utilities & Helpers](#-core-utilities--helpers)
-    *   [💡 Core Patterns: Observer & Controller](#-core-patterns-observer--controller)
-    *   [📊 Component: TableSorter](#-component-tablesorter)
-    *   [🧠 Component: pageMemory](#-component-pagememory)
-    *   [💬 Component: popupmessage](#-component-popupmessage)
-    *   [🌳 Component: TreeListCreator & TreeListManager](#-component-treelistcreator--treelistmanager)
-    *   [🎨 Component: themeControl](#-component-themecontrol)
-    *   [🧪 Demonstration Script (`script.js`)](#-demonstration-script-scriptjs)
-    *   [📦 Dummy Data (`dummy/`)](#-dummy-data-dummy)
-*   [Troubleshooting](#troubleshooting)
-*   [Contributing](#contributing)
-*   [License](#license)
-*   [🚧 Work in Progress](#-work-in-progress)
+*   [🚀 README AI - cdn](#readme-ai---cdn)
+*   [📄 Table of Contents](#-table-of-contents)
+*   [✨ Features](#--features)
+*   [🛠️ Installation / Setup](#️-installation--setup)
+*   [📂 Project Structure](#-project-structure)
+*   [📋 Requirements](#-requirements)
+*   [🔒 Security & Safety Highlights](#-security--safety-highlights)
+*   [📖 Detailed Usage / API Documentation](#-detailed-usage--api-documentation)
+    *   [Global Namespace and Core Utilities (`js/base.js`, `js/common.js`)](#global-namespace-and-core-utilities--jsbasejs-jscommonjs)
+    *   [Object Manipulation (`js/object.js`)](#object-manipulation--jsobjectjs)
+    *   [DOM and Event Observation (`js/observer.js`)](#dom-and-event-observation--jsobserverjs)
+    *   [Asynchronous Task Control (`js/pid.js`)](#asynchronous-task-control--jspidjs)
+    *   [Table Sorting (`js/TableSorter.js`)](#table-sorting--jstablsorterjs)
+    *   [Popup Messages (`js/popupmessage.js`, `js/popupmessage.css`)](#popup-messages--jspopupmessagejs-jspopupmessagecss)
+    *   [Theme Control (`js/themeControl.js`, `js/themeControl.css`)](#theme-control--jsthemecontroljs-jsthemecontrolcss)
+    *   [Tree Lists (`js/treelist.js`, `js/treelist.css`)](#tree-lists--jstreelistjs-jstreelistcss)
+    *   [Page Memory / State Persistence (`js/pagememory.js`)](#page-memory--state-persistence--jspagememoryjs)
+    *   [Controller (`js/controller.js`)](#controller--jscontrollerjs)
+    *   [Demonstration Script (`script.js`)](#demonstration-script--scriptjs)
+    *   [Dummy Data (`dummy/`)](#dummy-data--dummy)
+*   [⚙️ Configuration](#️-configuration)
+*   [⚠️ Limitations and Edge Cases](#️-limitations-and-edge-cases)
+*   [🤝 Contributing](#--contributing)
+*   [📄 License](#-license)
+*   [🚧 Work in Progress](#--work-in-progress)
 
-## Installation / Setup
+## ✨ Features
 
-To use the components and utilities from this repository in your web project, you typically do not need a build step. You can include the relevant JavaScript and CSS files directly in your HTML documents.
+*   Centralized `JCGWeb` namespace for organizing client-side utilities.
+*   Core helpers for DOM manipulation, event handling, and position calculations.
+*   Utility for parsing URL parameters.
+*   Dynamic loading of HTML elements.
+*   Generation of unique identifiers.
+*   Advanced object path manipulation for accessing nested properties.
+*   Comprehensive DOM change and event observation capabilities using `MutationObserver`.
+*   Asynchronous task control with cancellation via `AbortController`.
+*   Client-side table sorting functionality.
+*   User interface state persistence across page loads using `localStorage`.
+*   Temporary popup notification system.
+*   Dynamic theme switching and persistence.
+*   Generation of interactive, collapsible tree list structures.
+*   Mock JSON data for development and testing purposes.
+*   Demonstration script showcasing integration and usage of various components.
 
-1.  **Clone the Repository:**
+## 🛠️ Installation / Setup
+
+This repository contains client-side assets (JavaScript, CSS, HTML) and does not require a server-side environment for basic usage.
+
+1.  **Clone the repository:**
     ```bash
     git clone https://github.com/jeffersoncgo/cdn.git
     ```
-2.  **Navigate to the Directory:**
+2.  **Navigate to the repository directory:**
     ```bash
     cd cdn
     ```
-3.  **Include Files in your HTML:**
-    Link the necessary JavaScript files from the `js/` directory and CSS files from `js/` or the root directory in your HTML `<head>` or before the closing `</body>` tag. Ensure dependencies are loaded in the correct order (e.g., core utilities before components that rely on them).
+3.  **Open `index.html`:**
+    Simply open the `index.html` file in a modern web browser. This file demonstrates the usage of the various JavaScript utilities and CSS styles included in the repository.
 
-    Example `index.html` inclusion (referencing the local path):
+To integrate these utilities into your own project, you can:
 
-    ```html
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>My Web Project</title>
-        <link rel="stylesheet" href="style.css">
-        <link rel="stylesheet" href="js/popupmessage.css">
-        <link rel="stylesheet" href="js/treelist.css">
-        <link rel="stylesheet" href="js/themeControl.css">
-        <!-- Include core utilities first -->
-        <script src="js/base.js"></script>
-        <script src="js/common.js"></script>
-        <script src="js/object.js"></script>
-        <script src="js/pid.js"></script>
-        <!-- Include core patterns -->
-        <script src="js/observer.js"></script>
-        <script src="js/controller.js"></script>
-        <!-- Include components -->
-        <script src="js/TableSorter.js"></script>
-        <script src="js/pagememory.js"></script>
-        <script src="js/popupmessage.js"></script>
-        <script src="js/treelist.js"></script>
-        <script src="js/themeControl.js"></script>
-        <!-- Your main script -->
-        <script src="script.js"></script>
-    </head>
-    <body>
-        <!-- Your page content -->
-    </body>
-    </html>
-    ```
-4.  **Serve the Files:** You can serve these files locally using a simple web server (e.g., Python's `http.server`, Node.js `serve`) or deploy them to a web server.
+*   Copy the relevant files (`.js`, `.css`) from the `js/` directory into your project.
+*   Include the scripts and stylesheets in your HTML files using `<script>` and `<link>` tags, ensuring the paths are correct.
 
-## Project Structure
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Project</title>
+    <!-- Include core styles -->
+    <link rel="stylesheet" href="path/to/style.css">
+    <!-- Include component specific styles -->
+    <link rel="stylesheet" href="path/to/js/popupmessage.css">
+    <link rel="stylesheet" href="path/to/js/themeControl.css">
+    <link rel="stylesheet" href="path/to/js/treelist.css">
+</head>
+<body>
+    <!-- Your HTML content -->
 
-The repository is organized to separate core utilities, components, demonstration assets, and dummy data.
+    <!-- Include core JS utilities -->
+    <script src="path/to/js/base.js"></script>
+    <script src="path/to/js/common.js"></script>
+    <script src="path/to/js/object.js"></script>
+    <script src="path/to/js/observer.js"></script>
+    <script src="path/to/js/pagememory.js"></script>
+    <script src="path/to/js/pid.js"></script>
+    <script src="path/to/js/TableSorter.js"></script>
+
+    <!-- Include component specific JS -->
+    <script src="path/to/js/popupmessage.js"></script>
+    <script src="path/to/js/themeControl.js"></script>
+    <script src="path/to/js/treelist.js"></script>
+
+    <!-- Include your main script -->
+    <script src="path/to/script.js"></script>
+</body>
+</html>
+```
+
+## 📂 Project Structure
+
+The repository is organized as follows:
 
 ```
 .
@@ -104,729 +136,600 @@ The repository is organized to separate core utilities, components, demonstratio
 └── style.css
 ```
 
-*   `/dummy`: Contains static JSON files (`products.json`, `users.json`) that serve as mock data sources for testing or demonstration purposes. These files provide structured data examples that can be fetched and used by the JavaScript components, such as populating tables or generating tree views.
-*   `/js`: This is the core directory containing the majority of the reusable JavaScript utilities and components. It includes foundational files (`base.js`, `common.js`, etc.) and specific component implementations (`TableSorter.js`, `popupmessage.js`, etc.), along with their associated CSS files (`.css` files within `js/`).
-*   `index.html`: The main entry point for the demonstration environment. It includes all the necessary CSS and JavaScript files and provides the HTML structure used by `script.js` to showcase component functionality.
-*   `script.js`: A comprehensive demonstration script that illustrates how to initialize and use various components from the `js/` directory, often fetching data from the `dummy/` directory. It's useful for understanding component integration.
-*   `style.css`: Provides general styling for the demonstration `index.html`.
+*   `.github/`: Contains GitHub-specific files, potentially including workflows or issue templates.
+*   `dummy/`: Holds static JSON files (`products.json`, `users.json`) serving as mock data sources for development or demonstration.
+*   `js/`: The primary directory for all client-side JavaScript utility files and associated CSS. Each file typically encapsulates a specific module or set of related functionalities.
+*   `index.html`: The main HTML file, likely serving as a demonstration page that includes and utilizes the various JavaScript and CSS assets.
+*   `README.md`: This file, providing documentation for the repository.
+*   `script.js`: A main script file that likely orchestrates the loading and usage of the components from the `js/` directory, serving as the primary entry point for the `index.html` demo.
+*   `style.css`: Contains general styles for the `index.html` or common styles used across components.
 
-## Detailed Usage / API Documentation
+## 📋 Requirements
 
-This section provides details on how to use the main components and utilities found in the `js/` directory, synthesized from their analysis.
+*   A modern web browser (Chrome, Firefox, Safari, Edge) supporting standard JavaScript (ES6+) and CSS3.
 
-### ✨ Core Utilities & Helpers
+## 🔒 Security & Safety Highlights
 
-The `js/` directory contains several foundational utility files, primarily organized under a global `JCGWeb` namespace and a static `utils` class. These provide fundamental capabilities used by other components.
+This project is designed to be a collection of client-side utilities. Key security and safety aspects include:
 
-**Purpose:** Provide basic, reusable functions for common web development tasks like DOM manipulation, object handling, and information retrieval.
+*   **Client-Side Execution:** All code runs within the user's browser sandbox, limiting potential server-side risks.
+*   **No Sensitive Data Handling:** The included dummy data is public mock data. The utilities themselves are not designed to handle sensitive user credentials or private information unless explicitly integrated and handled securely by the consuming application.
+*   **Local Storage Usage:** The state persistence (`pagememory.js`, `themeControl.js`) utilizes browser `localStorage`, which is scoped to the domain and generally considered safe for non-sensitive user preferences or UI states. Users can clear browser data to reset this storage.
+*   **Structured Code:** The use of a global `JCGWeb` namespace helps prevent global scope pollution and potential conflicts with other libraries.
+*   **Asynchronous Control:** The PID utility provides mechanisms for managing asynchronous operations, potentially helping to prevent resource exhaustion or race conditions in complex frontend logic.
 
-**Key Features:**
-*   DOM element identification and manipulation.
-*   Accessing URL parameters and information.
-*   Deep object access, merging, and cleaning.
-*   Sequential ID generation.
-*   Basic event handling helpers (integrated via `utils`).
+As with any client-side code, integrating these utilities into a larger application requires careful consideration of how user input is handled and how data is transmitted to or from a server, but the utilities themselves provide a safe foundation for common frontend tasks.
 
-**Dependencies:** These files are generally self-contained or depend only on standard browser APIs.
+## 📖 Detailed Usage / API Documentation
 
-**How to Use / API Highlights:**
+The JavaScript utilities in this repository are primarily organized under the global `JCGWeb` namespace to prevent conflicts. Below are descriptions and usage examples for key components based on the provided analysis.
 
-The core utilities are typically accessed via `JCGWeb` or `JCGWeb.utils`.
+### Global Namespace and Core Utilities (`js/base.js`, `js/common.js`)
 
-**Example 1: Accessing a DOM Element**
+These files establish the foundation for the library, defining the `JCGWeb` namespace and providing fundamental helper functions for DOM manipulation, event handling, element positioning, URL parsing, dynamic loading, and unique ID generation.
 
-*   **Description:** Demonstrates getting an element by its ID.
-*   **Code Snippet:**
-    ```javascript
-    // Assuming you have an element like <div id="myElement"> in your HTML
-    const myElement = JCGWeb.Functions.getElementById('myElement');
+*   **Description:** Provides core helper functions essential for frontend development within the `JCGWeb` namespace. Includes utilities for selecting DOM elements, adding/removing event listeners, calculating element positions, parsing URL query strings, loading HTML content dynamically, and generating unique identifiers.
+*   **Key Features:**
+    *   DOM element selection (`JCGWeb.id`, `JCGWeb.query`, `JCGWeb.queryAll`).
+    *   Event handling utilities (`JCGWeb.addEvent`, `JCGWeb.removeEvent`).
+    *   Element position and dimension calculations (`JCGWeb.getPosition`, `JCGWeb.getSize`).
+    *   URL parameter parsing (`JCGWeb.getURLParameters`).
+    *   Dynamic element loading (`JCGWeb.loadHTML`).
+    *   Unique ID generation (`JCGWeb.newId`).
+*   **Dependencies:** None (core utilities).
+*   **How to Use / API Highlights / Examples:**
 
-    if (myElement) {
-        console.log('Found element:', myElement);
-    } else {
-        console.log('Element not found.');
-    }
-    ```
-*   **Output:** Logs the DOM element object if found.
-*   **Explanation:** Uses the utility function to safely retrieve a DOM element by its ID, which is a common prerequisite for component initialization or manipulation.
+    **Example 1: Selecting elements and adding an event listener**
 
-**Example 2: Getting a URL Parameter**
+    *   **Input:** An HTML button with ID `myButton`, and a function to call when clicked.
+    *   **Code Snippet:**
+        ```javascript
+        // Assuming an element like <button id="myButton">Click Me</button> exists
+        const myButton = JCGWeb.id('myButton'); // Select element by ID
 
-*   **Description:** Shows how to retrieve a specific parameter from the current page's URL.
-*   **Code Snippet:**
-    ```javascript
-    // Assuming the URL is like http://example.com/?user=test&id=123
-    const userId = JCGWeb.Functions.getURLParameter('user');
-    const itemId = JCGWeb.Functions.getURLParameter('id');
-    const nonExistentParam = JCGWeb.Functions.getURLParameter('status');
+        if (myButton) {
+            JCGWeb.addEvent(myButton, 'click', function() {
+                alert('Button clicked!');
+            });
+        } else {
+            console.error('Button with ID "myButton" not found.');
+        }
+        ```
+    *   **Output:** Clicking the button will trigger a browser alert with the message "Button clicked!".
+    *   **Explanation:** Demonstrates how to use `JCGWeb.id` to get a DOM element reference and `JCGWeb.addEvent` to attach an event listener safely across different browser environments.
 
-    console.log('User ID:', userId); // Output: test
-    console.log('Item ID:', itemId); // Output: 123
-    console.log('Status:', nonExistentParam); // Output: null
-    ```
-*   **Output:** Logs the values of the requested URL parameters or `null` if not found.
-*   **Explanation:** Useful for reading state or configuration passed via the URL query string.
+    **Example 2: Parsing URL parameters**
 
-**Example 3: Generating a Sequential ID**
+    *   **Input:** A URL like `http://example.com/page?id=123&name=test`.
+    *   **Code Snippet:**
+        ```javascript
+        // Assuming the current page URL is http://example.com/page?id=123&name=test
+        const urlParams = JCGWeb.getURLParameters();
+        console.log(urlParams);
+        console.log('ID:', urlParams.id);
+        console.log('Name:', urlParams.name);
+        ```
+    *   **Output:**
+        ```
+        { id: "123", name: "test" }
+        ID: 123
+        Name: test
+        ```
+    *   **Explanation:** Shows how `JCGWeb.getURLParameters` can easily parse the query string of the current URL into a JavaScript object.
 
-*   **Description:** Demonstrates how to get a unique sequential identifier.
-*   **Code Snippet:**
-    ```javascript
-    const id1 = JCGWeb.Functions.getSequentialId();
-    const id2 = JCGWeb.Functions.getSequentialId();
+### Object Manipulation (`js/object.js`)
 
-    console.log('First ID:', id1); // Output: A unique ID string (e.g., "seq_1")
-    console.log('Second ID:', id2); // Output: The next unique ID string (e.g., "seq_2")
-    ```
-*   **Output:** Logs unique, sequentially generated string IDs.
-*   **Explanation:** Useful for creating unique identifiers for dynamically generated DOM elements or internal objects when a simple counter is sufficient.
+*   **Description:** Provides utilities for safely accessing and manipulating properties within nested JavaScript objects using a string path notation (e.g., `'user.address.city'`).
+*   **Key Features:**
+    *   Get nested property value by path (`JCGWeb.Object.get`).
+    *   Set nested property value by path (`JCGWeb.Object.set`).
+    *   Check if a nested property exists by path (`JCGWeb.Object.has`).
+*   **Dependencies:** `js/base.js` (relies on `JCGWeb` namespace).
+*   **How to Use / API Highlights / Examples:**
 
-### 💡 Core Patterns: Observer & Controller
+    **Example 1: Getting a nested property**
 
-This repository includes implementations of key design patterns: an Observer for monitoring DOM changes and events, and a Controller for managing asynchronous function execution.
-
-#### Component: Observer
-
-**File:** `js/observer.js`
-
-**Purpose:** Provides a unified way to listen for DOM mutations (changes to the structure or attributes of elements) and standard DOM events on specified target elements.
-
-**Key Features:**
-*   Observes DOM mutations (attribute changes, child list changes, subtree changes).
-*   Listens for standard DOM events.
-*   Allows specifying target elements and filtering mutations/events.
-*   Provides a consistent callback mechanism.
-
-**Dependencies:** Relies on the native `MutationObserver` API and standard browser event listeners.
-
-**How to Use / API Highlights:**
-
-**Example 1: Observing DOM Mutations**
-
-*   **Description:** Sets up an observer to watch for attribute changes on a specific element.
-*   **Input:** Target element, configuration object, callback function.
-*   **Code Snippet:**
-    ```javascript
-    // Assuming you have an element <div id="watchedElement">
-    const targetElement = JCGWeb.Functions.getElementById('watchedElement');
-
-    if (targetElement) {
-        const observer = new JCGWeb.Observer(targetElement, {
-            attributes: true // Watch for attribute changes
-            // childList: true, subtree: true, etc. for other mutation types
-        }, (mutationsList, observerInstance) => {
-            for (const mutation of mutationsList) {
-                if (mutation.type === 'attributes') {
-                    console.log('Attribute changed:', mutation.attributeName, 'on', mutation.target);
-                    // Example: React to the change
-                    // observerInstance.disconnect(); // Stop observing if needed
+    *   **Input:** A nested object and a property path string.
+    *   **Code Snippet:**
+        ```javascript
+        const user = {
+            id: 1,
+            profile: {
+                name: 'Alice',
+                address: {
+                    city: 'Wonderland',
+                    zip: '12345'
                 }
-            }
-        });
-
-        console.log('Observer started for mutations on #watchedElement.');
-
-        // --- Simulate a change after a delay ---
-        setTimeout(() => {
-            targetElement.setAttribute('data-status', 'updated');
-            targetElement.classList.add('active'); // Also triggers attribute change
-        }, 1000);
-
-    } else {
-        console.log('Target element #watchedElement not found.');
-    }
-    ```
-*   **Output:** When the element's attributes change, the callback logs details about the mutation.
-    ```
-    Observer started for mutations on #watchedElement.
-    Attribute changed: data-status on [object HTMLDivElement]
-    Attribute changed: class on [object HTMLDivElement]
-    ```
-*   **Explanation:** This is useful for reacting to changes in the DOM structure or element properties that occur dynamically, potentially outside the direct control of your current script.
-
-**Example 2: Listening for DOM Events**
-
-*   **Description:** Sets up the observer to listen for standard events like 'click' or 'input' on a target or its children.
-*   **Input:** Target element, event configuration object, callback function.
-*   **Code Snippet:**
-    ```javascript
-    // Assuming you have a button <button id="myButton">Click Me</button>
-    const targetElement = JCGWeb.Functions.getElementById('myButton');
-
-    if (targetElement) {
-         const observer = new JCGWeb.Observer(targetElement, {
-            events: {
-                click: true // Listen for click events
-                // input: true, focus: true, etc. for other event types
-            }
-        }, (event, observerInstance) => {
-            console.log('Event triggered:', event.type, 'on', event.target);
-            // observerInstance.stopEventListening('click'); // Stop listening for a specific event
-        });
-
-        console.log('Observer started for click events on #myButton.');
-
-    } else {
-        console.log('Target element #myButton not found.');
-    }
-    ```
-*   **Output:** When the button is clicked, the callback logs details about the event.
-    ```
-    Observer started for click events on #myButton.
-    Event triggered: click on [object HTMLButtonElement]
-    ```
-*   **Explanation:** Provides an alternative or combined approach to standard `addEventListener`, allowing event listening to be managed alongside DOM mutation observation within the same `Observer` instance.
-
-#### Component: Controller
-
-**File:** `js/controller.js`
-
-**Purpose:** Manages the execution of asynchronous functions with features like debouncing, delaying, and aborting. Useful for controlling the flow of operations that might be triggered frequently or need careful timing.
-
-**Key Features:**
-*   Debounce function execution (wait for a pause before executing).
-*   Delay function execution.
-*   Abort pending function executions.
-*   Handles asynchronous functions (Promises).
-
-**Dependencies:** None external to the core utilities.
-
-**How to Use / API Highlights:**
-
-**Example 1: Debouncing a Function Call**
-
-*   **Description:** Creates a debounced version of a function that only executes after a specified period of inactivity.
-*   **Input:** The function to debounce, the delay time in milliseconds.
-*   **Code Snippet:**
-    ```javascript
-    const searchInput = JCGWeb.Functions.getElementById('searchInput'); // Assuming <input id="searchInput">
-
-    if (searchInput) {
-        // Create a debounced version of a search function (replace with your actual search logic)
-        const handleSearchInput = async (value) => {
-            console.log(`Performing search for: "${value}"`);
-            // Simulate an async operation
-            await new Promise(resolve => setTimeout(resolve, 200));
-            console.log(`Search complete for: "${value}"`);
+            },
+            roles: ['admin', 'editor']
         };
 
-        const debouncedSearch = JCGWeb.Controller.debounce(handleSearchInput, 500); // 500ms delay
+        const city = JCGWeb.Object.get(user, 'profile.address.city');
+        const firstRole = JCGWeb.Object.get(user, 'roles.0'); // Access array elements by index
+        const nonExistent = JCGWeb.Object.get(user, 'profile.contact.email'); // Path that doesn't exist
 
-        // Attach the debounced function to an input event
-        searchInput.addEventListener('input', (event) => {
-            console.log('Input detected, debounce triggered...');
-            debouncedSearch(event.target.value);
-        });
+        console.log('City:', city);
+        console.log('First Role:', firstRole);
+        console.log('Non-existent:', nonExistent);
+        ```
+    *   **Output:**
+        ```
+        City: Wonderland
+        First Role: admin
+        Non-existent: undefined
+        ```
+    *   **Explanation:** Demonstrates using `JCGWeb.Object.get` to retrieve values from deep within an object structure using a simple dot-notation path. It also shows how it gracefully handles non-existent paths by returning `undefined`.
 
-        console.log('Debounce example setup. Type quickly in the input field.');
+    **Example 2: Setting a nested property**
 
-    } else {
-        console.log('Input element #searchInput not found. Cannot run debounce example.');
-    }
-    ```
-*   **Output:** If you type "abc" quickly, the output will show "Input detected..." for each keypress, but "Performing search..." and "Search complete..." will only appear once, 500ms after you stop typing.
-*   **Explanation:** Ideal for handling events like typing in a search box, resizing a window, or scrolling, where you only want to trigger the associated action once the user has finished the activity.
-
-**Example 2: Delaying a Function Call**
-
-*   **Description:** Delays the execution of a function by a specified time.
-*   **Input:** The function to delay, the delay time in milliseconds.
-*   **Code Snippet:**
-    ```javascript
-    console.log('Scheduling delayed message...');
-
-    JCGWeb.Controller.delay(() => {
-        console.log('This message appears after a 2-second delay.');
-    }, 2000); // 2000ms = 2 seconds
-
-    console.log('Message scheduled.');
-    ```
-*   **Output:**
-    ```
-    Scheduling delayed message...
-    Message scheduled.
-    This message appears after a 2-second delay. (after 2 seconds)
-    ```
-*   **Explanation:** Simple way to schedule a function to run after a pause, useful for animations, timeouts, or deferred tasks.
-
-**Example 3: Aborting a Pending Call**
-
-*   **Description:** Shows how to cancel a debounced or delayed function call before it executes.
-*   **Code Snippet:**
-    ```javascript
-    const actionFunction = () => {
-        console.log('This action was NOT aborted and is now running.');
-    };
-
-    // Schedule an action with a delay
-    const scheduledAction = JCGWeb.Controller.delay(actionFunction, 3000); // Schedule for 3 seconds
-
-    console.log('Action scheduled for 3 seconds.');
-
-    // Abort the scheduled action after 1 second
-    setTimeout(() => {
-        console.log('Attempting to abort the scheduled action...');
-        scheduledAction.abort();
-        console.log('Abort requested.');
-    }, 1000); // Abort after 1 second
-
-    // --- Another example with debounce ---
-    const frequentFunction = () => console.log('This debounced function ran.');
-    const debouncedFunction = JCGWeb.Controller.debounce(frequentFunction, 500);
-
-    debouncedFunction(); // Trigger 1
-    debouncedFunction(); // Trigger 2 (resets timer)
-    debouncedFunction(); // Trigger 3 (resets timer)
-
-    // Abort the debounced function before it fires
-    setTimeout(() => {
-        console.log('Attempting to abort the debounced action...');
-        debouncedFunction.abort();
-        console.log('Abort requested for debounced function.');
-    }, 600); // Abort after debounce window
-
-    // If the abort is successful, "This action was NOT aborted..." will not appear.
-    // If the abort is successful, "This debounced function ran." will not appear.
-    ```
-*   **Output:**
-    ```
-    Action scheduled for 3 seconds.
-    Attempting to abort the scheduled action...
-    Abort requested.
-    Attempting to abort the debounced action...
-    Abort requested for debounced function.
-    ```
-    The messages "This action was NOT aborted..." and "This debounced function ran." will *not* appear because they were aborted.
-*   **Explanation:** Crucial for preventing outdated or unnecessary operations, especially with debouncing (e.g., cancelling a previous search request when the user types again) or clearing timeouts.
-
-### 📊 Component: TableSorter
-
-**File:** `js/TableSorter.js`
-
-**Purpose:** Adds interactive sorting capabilities to standard HTML tables. Users can click table headers (`<th>`) to sort the table rows based on the content of that column.
-
-**Key Features:**
-*   Sorts table rows based on clicked header.
-*   Supports ascending and descending order.
-*   Relies on the `Observer` to react to table changes if needed (though primary use is on load).
-
-**Dependencies:** Depends on the `Observer` component and core utilities like `JCGWeb.Functions`.
-
-**How to Use / API Highlights:**
-
-**Example 1: Initializing TableSorter**
-
-*   **Description:** Applies sorting functionality to an existing HTML table.
-*   **Input:** The ID or the DOM element of the `<table>`.
-*   **Code Snippet:**
-    ```html
-    <!-- Example HTML Table (in your index.html or dynamically created) -->
-    <table id="mySortableTable">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Age</th>
-                <th>City</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr><td>Alice</td><td>30</td><td>New York</td></tr>
-            <tr><td>Bob</td><td>25</td><td>London</td></tr>
-            <tr><td>Charlie</td><td>35</td><td>Paris</td></tr>
-            <tr><td>Alice</td><td>28</td><td>London</td></tr>
-        </tbody>
-    </table>
-
-    <script>
-        // Assuming the table HTML exists in the DOM
-        document.addEventListener('DOMContentLoaded', () => {
-            const sortableTable = new JCGWeb.TableSorter('mySortableTable');
-            console.log('TableSorter initialized for #mySortableTable.');
-            // Now click on the table headers in the browser to test sorting.
-        });
-    </script>
-    ```
-*   **Output:** The table headers will become clickable. Clicking a header will reorder the table rows based on the content of that column (alphabetically or numerically if the content is clearly numbers).
-*   **Explanation:** This is the primary way to enable sorting. Simply create a new `TableSorter` instance, passing the target table element or its ID. The component automatically finds headers and attaches click handlers.
-
-### 🧠 Component: pageMemory
-
-**File:** `js/pagememory.js`
-
-**Purpose:** Automatically saves and restores the state of specified HTML form elements (like input fields, checkboxes, selects) using the browser's `localStorage`. This allows users to return to a page and find their input fields retaining the values they last entered.
-
-**Key Features:**
-*   Saves state of input, textarea, select, checkbox, radio elements.
-*   Uses `localStorage` for persistence across sessions.
-*   Can target specific elements or save/restore globally.
-*   Leverages `Observer` for detecting changes and `Controller` for debouncing saving.
-
-**Dependencies:** Depends on `JCGWeb.Observer`, `JCGWeb.Controller`, and `JCGWeb.Functions`, as well as the browser's `localStorage` API.
-
-**How to Use / API Highlights:**
-
-**Example 1: Initializing and Using pageMemory**
-
-*   **Description:** Sets up page memory to save and restore the state of form elements within a specific container.
-*   **Input:** The ID or DOM element of the container to watch (e.g., a `<form>` or `<div>`).
-*   **Code Snippet:**
-    ```html
-    <!-- Example HTML Form (in your index.html or dynamically created) -->
-    <div id="settingsForm">
-        <input type="text" id="username" placeholder="Username">
-        <input type="number" id="age" placeholder="Age">
-        <select id="country">
-            <option value="us">USA</option>
-            <option value="ca">Canada</option>
-            <option value="uk">UK</option>
-        </select>
-        <label><input type="checkbox" id="rememberMe"> Remember Me</label>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const formContainer = JCGWeb.Functions.getElementById('settingsForm');
-
-            if (formContainer) {
-                // Initialize pageMemory for the container
-                const memory = new JCGWeb.pageMemory(formContainer);
-
-                console.log('pageMemory initialized for #settingsForm.');
-                console.log('Try typing/selecting values, then refresh the page.');
-
-                // The component automatically loads saved state on initialization
-                // and saves state whenever the elements change (debounced).
-            } else {
-                 console.log('Container element #settingsForm not found. Cannot initialize pageMemory.');
+    *   **Input:** An object, a property path string, and the new value.
+    *   **Code Snippet:**
+        ```javascript
+        const user = {
+            id: 1,
+            profile: {
+                name: 'Alice',
+                address: {
+                    city: 'Wonderland'
+                }
             }
-        });
-    </script>
-    ```
-*   **Output:** When the page loads, the input fields, select box, and checkbox within `#settingsForm` will be populated with the values they had the last time the user visited this page (in the same browser). As the user types or changes values, these changes are automatically saved to `localStorage` after a short delay.
-*   **Explanation:** This provides a seamless way to enhance user experience by preserving form state, preventing data loss on accidental navigation or page refresh. The component handles the saving (via debounced observation) and loading automatically.
+        };
 
-### 💬 Component: popupmessage
+        JCGWeb.Object.set(user, 'profile.address.zip', '98765'); // Set an existing path
+        JCGWeb.Object.set(user, 'profile.contact.email', 'alice@example.com'); // Set a path, creating objects if necessary
+        JCGWeb.Object.set(user, 'isActive', true); // Set a top-level property
 
-**File:** `js/popupmessage.js`, `js/popupmessage.css`
+        console.log(user);
+        ```
+    *   **Output:**
+        ```javascript
+        {
+          id: 1,
+          profile: {
+            name: 'Alice',
+            address: {
+              city: 'Wonderland',
+              zip: '98765' // Added
+            },
+            contact: { // Created
+              email: 'alice@example.com' // Added
+            }
+          },
+          isActive: true // Added
+        }
+        ```
+    *   **Explanation:** Illustrates how `JCGWeb.Object.set` can modify existing properties or create new ones (including intermediate objects) based on the provided path.
 
-**Purpose:** Provides a simple, non-intrusive system for displaying temporary notification messages (like success, error, or info messages) as popups on the screen.
+### DOM and Event Observation (`js/observer.js`)
 
-**Key Features:**
-*   Displays messages with different types (info, success, warning, error).
-*   Messages can automatically disappear after a delay or be manually dismissed.
-*   Styled via `popupmessage.css`.
+*   **Description:** Provides a wrapper around `MutationObserver` and standard event listeners to simplify observing changes to the DOM or specific events on elements.
+*   **Key Features:**
+    *   Observe DOM mutations (attributes, child list, subtree) on a target element.
+    *   Observe standard events (click, input, etc.) on a target element.
+    *   Unified interface for different observation types.
+    *   Easy disconnection/cleanup of observers and listeners.
+*   **Dependencies:** `js/base.js`.
+*   **How to Use / API Highlights / Examples:**
 
-**Dependencies:** Requires `popupmessage.css` for styling. Relies on basic DOM manipulation utilities.
+    **Example 1: Observing DOM attribute changes**
 
-**How to Use / API Highlights:**
+    *   **Input:** A target DOM element and a callback function.
+    *   **Code Snippet:**
+        ```javascript
+        // Assuming an element like <div id="myDiv"></div> exists
+        const myDiv = JCGWeb.id('myDiv');
 
-The `popupmessage` component is typically accessed via the `JCGWeb.popupMessage` object.
+        if (myDiv) {
+            // Create a new observer instance
+            const divObserver = new JCGWeb.Observer(myDiv);
 
-**Example 1: Showing an Info Message**
-
-*   **Description:** Displays a basic informational message that disappears automatically.
-*   **Input:** Message string, optional duration in milliseconds (defaults to a standard time).
-*   **Code Snippet:**
-    ```javascript
-    document.addEventListener('DOMContentLoaded', () => {
-         // Ensure the popup message container exists (usually added by the script itself)
-         // or ensure popupmessage.js is loaded.
-
-         console.log('Showing an info popup message...');
-         JCGWeb.popupMessage.show('Welcome back!', 'info');
-    });
-    ```
-*   **Output:** A small popup box appears (usually in a corner of the screen, styled by `popupmessage.css`) with the text "Welcome back!" and an info icon/styling. It will disappear after a few seconds.
-*   **Explanation:** Simple way to give non-critical feedback to the user.
-
-**Example 2: Showing a Success Message with Custom Duration**
-
-*   **Description:** Displays a success message that stays visible for a specific duration.
-*   **Input:** Message string, message type ('success'), custom duration in milliseconds.
-*   **Code Snippet:**
-    ```javascript
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('Showing a success popup message for 5 seconds...');
-        JCGWeb.popupMessage.show('Settings saved successfully!', 'success', 5000); // 5000ms = 5 seconds
-    });
-    ```
-*   **Output:** A popup box with success styling appears with the text "Settings saved successfully!" and stays visible for 5 seconds before fading out.
-*   **Explanation:** Useful for confirming successful user actions, allowing the user ample time to read the confirmation.
-
-**Example 3: Showing an Error Message (Manual Dismissal)**
-
-*   **Description:** Displays an error message that requires the user to dismiss it manually.
-*   **Input:** Message string, message type ('error'), duration `0` or `false` for manual dismissal.
-*   **Code Snippet:**
-    ```javascript
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('Showing an error popup message (manual dismiss)...');
-        // Duration 0 or false means it stays until clicked/dismissed
-        JCGWeb.popupMessage.show('Error: Failed to load data.', 'error', 0);
-    });
-    ```
-*   **Output:** A popup box with error styling appears with the text "Error: Failed to load data." It will remain on screen until the user clicks it or a close button (if provided by CSS/HTML structure).
-*   **Explanation:** Appropriate for critical messages that the user *must* acknowledge before continuing.
-
-### 🌳 Component: TreeListCreator & TreeListManager
-
-**File:** `js/treelist.js`, `js/treelist.css`
-
-**Purpose:** Enables the dynamic generation and management of collapsible HTML tree structures from hierarchical JavaScript data (objects or arrays). Useful for visualizing nested data like file systems, categories, or complex configurations.
-
-**Key Features:**
-*   Generates nested `<ul>` and `<li>` HTML structures.
-*   Supports collapsible nodes.
-*   Can render data from nested objects or arrays.
-*   Provides a singleton `TreeListManager` for easy access and multiple tree management.
-*   Styled via `treelist.css`.
-
-**Dependencies:** Requires `treelist.css` for styling. Depends on core utilities for DOM manipulation.
-
-**How to Use / API Highlights:**
-
-The primary interaction is via the `JCGWeb.TreeListManager` singleton.
-
-**Example 1: Creating and Rendering a Tree**
-
-*   **Description:** Generates an HTML tree structure from sample data and renders it into a specified container element.
-*   **Input:** Target container element ID or object, the hierarchical data object/array, optional configuration.
-*   **Code Snippet:**
-    ```html
-    <!-- Example HTML Container (in your index.html) -->
-    <div id="treeContainer">
-        <!-- The tree will be rendered here -->
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const treeData = {
-                name: "Root",
-                children: [
-                    { name: "Folder 1", children: [ { name: "File A" }, { name: "File B" } ] },
-                    { name: "Folder 2", children: [ { name: "Subfolder", children: [ { name: "File C" } ] } ] },
-                    { name: "File D" }
-                ]
-            };
-
-            const containerId = 'treeContainer';
-
-            // Create and render the tree using the manager
-            JCGWeb.TreeListManager.createTreeList(containerId, treeData, {
-                // Optional configuration, e.g., specify keys for name/children if data structure is different
-                // nameKey: 'label',
-                // childrenKey: 'items'
+            // Start observing attribute changes
+            divObserver.observe('attributes', function(mutations) {
+                mutations.forEach(mutation => {
+                    console.log(`Attribute '${mutation.attributeName}' changed on element:`, mutation.target);
+                });
             });
 
-            console.log('Tree list created in #treeContainer.');
-            // Interact with the tree in the browser (collapse/expand nodes).
-        });
-    </script>
-*   **Output:** An interactive, collapsible tree structure appears within the `#treeContainer` div, representing the provided `treeData`.
-*   **Explanation:** The `TreeListManager.createTreeList` method is the standard way to generate a tree. It takes the target container and the data and builds the HTML structure. The `treelist.css` provides the default styling and handles the collapse/expand behavior via CSS classes.
+            // --- Simulate a change after a short delay ---
+            setTimeout(() => {
+                myDiv.setAttribute('data-state', 'active');
+            }, 1000);
 
-### 🎨 Component: themeControl
+            // To stop observing later:
+            // divObserver.disconnect('attributes');
+        }
+        ```
+    *   **Output:** After 1 second, a console message will appear: `Attribute 'data-state' changed on element: <div id="myDiv" data-state="active"></div>`.
+    *   **Explanation:** Shows how to instantiate `JCGWeb.Observer` and use the `observe` method with type `'attributes'` to react to changes in the element's attributes.
 
-**File:** `js/themeControl.js`, `js/themeControl.css`
+    **Example 2: Observing a standard event**
 
-**Purpose:** Allows users to dynamically control the visual theme of the webpage, primarily through color manipulation like shifting hues and inverting colors. It includes functionality to save and load custom themes using `localStorage`.
+    *   **Input:** A target DOM element and a callback function for a specific event type.
+    *   **Code Snippet:**
+        ```javascript
+        // Assuming an element like <input type="text" id="myInput"></div> exists
+        const myInput = JCGWeb.id('myInput');
 
-**Key Features:**
-*   Applies theme changes by modifying CSS variables or classes.
-*   Supports color inversion and hue shifting.
-*   Saves and loads preferred themes via `localStorage`.
-*   Provides UI elements (e.g., buttons) to trigger theme changes (demonstrated in `script.js`).
-*   Styled via `themeControl.css`.
+        if (myInput) {
+             // Use the same observer instance or a new one
+            const inputObserver = new JCGWeb.Observer(myInput);
 
-**Dependencies:** Requires `themeControl.css` for styling. Depends on `localStorage` API and core utilities.
+            // Start observing 'input' events
+            inputObserver.observe('input', function(event) {
+                console.log('Input value changed:', event.target.value);
+            });
 
-**How to Use / API Highlights:**
+            // To stop observing later:
+            // inputObserver.disconnect('input');
+        }
+        ```
+    *   **Output:** As the user types in the input field, console messages will appear showing the current value.
+    *   **Explanation:** Demonstrates using `JCGWeb.Observer` to attach standard event listeners, providing a consistent API alongside DOM mutation observation.
 
-The `themeControl` component is typically accessed via the `JCGWeb.themeControl` object.
+### Asynchronous Task Control (`js/pid.js`)
 
-**Example 1: Applying a Theme (Programmatically)**
+*   **Description:** Provides a mechanism to manage and cancel asynchronous tasks, likely utilizing `AbortController`, allowing for controlled execution of operations like fetching data or animations. The name "PID" might be a historical or internal reference; its functionality aligns with process/task management.
+*   **Key Features:**
+    *   Create cancellable task contexts.
+    *   Signal task cancellation.
+    *   Associate tasks with a cancellation signal.
+*   **Dependencies:** `js/base.js`. Relies on the browser's native `AbortController` API.
+*   **How to Use / API Highlights / Examples:**
 
-*   **Description:** Applies a specific theme state (e.g., inverted colors) programmatically.
-*   **Input:** Theme state object (e.g., `{ inverted: true }`).
-*   **Code Snippet:**
-    ```javascript
-    document.addEventListener('DOMContentLoaded', () => {
-        // Initialize themeControl (loads saved theme if any)
-        JCGWeb.themeControl.init();
-        console.log('themeControl initialized.');
+    **Example 1: Creating and using a cancellable task**
 
-        // Apply inverted theme after a delay
+    *   **Input:** An asynchronous operation (e.g., `fetch`) that supports `AbortSignal`.
+    *   **Code Snippet:**
+        ```javascript
+        async function fetchData(url, signal) {
+            try {
+                console.log('Fetching data...');
+                const response = await fetch(url, { signal });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                console.log('Data fetched successfully:', data);
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('Fetch aborted.');
+                } else {
+                    console.error('Fetch error:', error);
+                }
+            }
+        }
+
+        // Create a PID (task controller)
+        const dataPid = new JCGWeb.PID();
+
+        // Start the fetch operation, passing the signal from the PID
+        fetchData('https://jsonplaceholder.typicode.com/todos/1', dataPid.signal);
+
+        // --- Simulate cancelling the task after a short delay ---
         setTimeout(() => {
-            console.log('Applying inverted theme...');
-            JCGWeb.themeControl.applyTheme({ inverted: true });
-        }, 2000);
-    });
-    ```
-*   **Output:** After 2 seconds, the colors on the page will invert (assuming `themeControl.css` is linked and configured to handle this).
-*   **Explanation:** The `applyTheme` method allows you to set the theme state directly. The `init` method should be called on page load to load any previously saved theme preferences from `localStorage`.
+            console.log('Attempting to cancel fetch...');
+            dataPid.cancel(); // Cancel the task
+        }, 50); // Cancel very quickly
 
-**Example 2: Toggling Color Inversion**
+        // To check if cancelled:
+        // console.log('Is cancelled?', dataPid.isCancelled());
+        ```
+    *   **Output:**
+        ```
+        Fetching data...
+        Attempting to cancel fetch...
+        Fetch aborted.
+        ```
+        (If the timeout was longer, the fetch might complete before cancellation).
+    *   **Explanation:** Demonstrates creating a `JCGWeb.PID` instance, which internally manages an `AbortController`. The `signal` from the PID is passed to an async operation (`fetch` in this case). Calling `dataPid.cancel()` triggers the abort signal, allowing the async operation to detect the cancellation and stop.
 
-*   **Description:** Toggles the color inversion state of the page.
-*   **Code Snippet:**
-    ```javascript
-    document.addEventListener('DOMContentLoaded', () => {
-        JCGWeb.themeControl.init(); // Ensure initialized
+### Table Sorting (`js/TableSorter.js`)
 
-        // Assuming you have a button <button id="toggleInvert">Toggle Colors</button>
-        const toggleButton = JCGWeb.Functions.getElementById('toggleInvert');
+*   **Description:** Provides client-side functionality to make HTML tables sortable by clicking on column headers. It handles different data types and sorting orders.
+*   **Key Features:**
+    *   Sort table rows based on column data.
+    *   Toggle ascending/descending order.
+    *   Automatic detection of data types (numbers, strings, dates - potentially).
+*   **Dependencies:** `js/base.js`. Requires a structured HTML `<table>`.
+*   **How to Use / API Highlights / Examples:**
 
-        if (toggleButton) {
-            toggleButton.addEventListener('click', () => {
-                JCGWeb.themeControl.toggleInverted();
-                console.log('Toggled color inversion.');
-                // The component automatically saves the new state to localStorage
+    **Example 1: Making a table sortable**
+
+    *   **Input:** An HTML `<table>` element.
+    *   **Code Snippet:**
+        ```html
+        <table id="mySortableTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Date Joined</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Charlie</td><td>30</td><td>2020-01-15</td></tr>
+                <tr><td>Alice</td><td>25</td><td>2021-05-20</td></tr>
+                <tr><td>Bob</td><td>35</td><td>2019-11-01</td></tr>
+            </tbody>
+        </table>
+
+        <script>
+            // Wait for the DOM to be ready
+            JCGWeb.addEvent(document, 'DOMContentLoaded', function() {
+                const tableElement = JCGWeb.id('mySortableTable');
+                if (tableElement) {
+                    // Initialize the TableSorter
+                    const sorter = new JCGWeb.TableSorter(tableElement);
+                    console.log('TableSorter initialized.');
+                } else {
+                    console.error('Table with ID "mySortableTable" not found.');
+                }
             });
-             console.log('Toggle inversion button handler attached.');
-        } else {
-            console.log('Toggle button #toggleInvert not found.');
-        }
-    });
-    ```
-*   **Output:** Clicking the button will toggle the color inversion effect on the page. The state is automatically saved, so the page will remember the preference on the next visit.
-*   **Explanation:** Provides a simple method to switch between inverted and non-inverted color schemes, suitable for connecting to UI elements. Similar methods likely exist for hue shifting.
+        </script>
+        ```
+    *   **Output:** The headers of the table (`Name`, `Age`, `Date Joined`) will become clickable. Clicking a header will reorder the table rows based on the content of that column. Clicking again will reverse the sort order.
+    *   **Explanation:** Instantiate `JCGWeb.TableSorter` with the target `<table>` element. The sorter automatically adds event listeners to `<th>` elements within the `<thead>` to trigger sorting when clicked.
 
-### 🧪 Demonstration Script (`script.js`)
+### Popup Messages (`js/popupmessage.js`, `js/popupmessage.css`)
 
-**File:** `script.js`
+*   **Description:** Provides a simple system for displaying temporary, non-intrusive popup messages (like toasts) on the screen.
+*   **Key Features:**
+    *   Display messages with different types (e.g., success, error, info).
+    *   Messages disappear automatically after a set duration.
+    *   Configurable position and styling (via CSS).
+*   **Dependencies:** `js/base.js`, `js/popupmessage.css`.
+*   **How to Use / API Highlights / Examples:**
 
-**Purpose:** This file serves as a primary example and integration point, demonstrating how to use several components from the `js/` directory together in a realistic scenario. It typically includes logic for fetching dummy data, initializing components like `TreeListManager` and `themeControl`, and setting up event listeners for interactive elements.
+    **Example 1: Showing an info message**
 
-**Key Features:**
-*   Fetches data (likely from `dummy/` files).
-*   Initializes `TreeListManager` to display data.
-*   Initializes `themeControl` and sets up UI to control themes.
-*   Shows component interaction and integration.
+    *   **Input:** Message text.
+    *   **Code Snippet:**
+        ```javascript
+        // Ensure popupmessage.css is linked in your HTML
+        JCGWeb.addEvent(document, 'DOMContentLoaded', function() {
+             // Show a simple info message
+            JCGWeb.PopupMessage.show('This is an informational message.');
 
-**Dependencies:** Depends heavily on various components and utilities from the `js/` directory (e.g., `treelist.js`, `themeControl.js`, core utilities).
+            // Show a message with a specific type
+            setTimeout(() => {
+                JCGWeb.PopupMessage.show('Action completed successfully!', 'success');
+            }, 1000);
 
-**How to Use:**
+             // Show a message with a different type
+            setTimeout(() => {
+                 JCGWeb.PopupMessage.show('An error occurred.', 'error');
+            }, 2000);
+        });
+        ```
+    *   **Output:** Three different popup messages will appear sequentially on the screen, styled according to the CSS for 'info', 'success', and 'error' types, and then automatically disappear.
+    *   **Explanation:** The `JCGWeb.PopupMessage.show()` method is used to display messages. The optional second argument specifies the message type, which can be used by the accompanying CSS for styling.
 
-The `script.js` file is not typically used as a library itself but as a working example. To "use" it, include it in your `index.html` *after* including all the components it depends on. Study its code to understand how to integrate the different components in your own application.
+### Theme Control (`js/themeControl.js`, `js/themeControl.css`)
 
-**Example Snippet (Conceptual):**
+*   **Description:** Manages dynamic theme switching for the web page, allowing users to select a preferred theme (e.g., light/dark mode) and potentially persisting this choice using `localStorage`.
+*   **Key Features:**
+    *   Apply themes by adding CSS classes (e.g., `theme-dark`, `theme-light`) to a root element (like `<body>` or `<html>`).
+    *   Persist the selected theme using `localStorage`.
+    *   Load the preferred theme automatically on page load.
+*   **Dependencies:** `js/base.js`, `js/themeControl.css`. Requires CSS rules defined for different theme classes.
+*   **How to Use / API Highlights / Examples:**
 
-*   **Description:** A conceptual look at how `script.js` might fetch data and use `TreeListManager`.
-*   **Code Snippet:**
-    ```javascript
-    // Inside script.js (conceptual)
+    **Example 1: Switching and persisting themes**
 
-    document.addEventListener('DOMContentLoaded', async () => {
-        // Assume a function to fetch data exists (could be in common.js or here)
-        async function fetchDummyData(url) {
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+    *   **Input:** Theme name string (e.g., `'dark'`, `'light'`).
+    *   **Code Snippet:**
+        ```javascript
+        // Ensure themeControl.css is linked in your HTML
+        // Your CSS should define rules like:
+        // body.theme-dark { background: #333; color: #eee; }
+        // body.theme-light { background: #eee; color: #333; }
+
+        JCGWeb.addEvent(document, 'DOMContentLoaded', function() {
+            // Initialize ThemeControl (loads saved theme or default)
+            JCGWeb.ThemeControl.init();
+            console.log('ThemeControl initialized. Current theme loaded from localStorage or default.');
+
+            // --- Simulate user clicking a theme switch button ---
+            // Assuming a button with ID 'toggleThemeButton' exists
+            const toggleButton = JCGWeb.id('toggleThemeButton');
+            if (toggleButton) {
+                 JCGWeb.addEvent(toggleButton, 'click', function() {
+                    const currentTheme = JCGWeb.ThemeControl.getCurrentTheme();
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+                    JCGWeb.ThemeControl.setTheme(newTheme); // Switch theme and save to localStorage
+                    console.log(`Switched theme to: ${newTheme}`);
+                 });
             }
-            return await response.json();
+
+            // You can also directly set a theme:
+            // JCGWeb.ThemeControl.setTheme('dark');
+        });
+        ```
+    *   **Output:** On page load, the previously saved theme (or a default) is applied. Clicking the toggle button switches between 'light' and 'dark' themes, updating the appearance via CSS classes on the `<body>` element and saving the preference to `localStorage`.
+    *   **Explanation:** `JCGWeb.ThemeControl.init()` should be called on page load. `JCGWeb.ThemeControl.setTheme(themeName)` applies the theme (by adding/removing `theme-{themeName}` classes) and saves it. `JCGWeb.ThemeControl.getCurrentTheme()` retrieves the currently active theme name.
+
+### Tree Lists (`js/treelist.js`, `js/treelist.css`)
+
+*   **Description:** Generates interactive, collapsible HTML tree structures from hierarchical data. Useful for displaying file systems, categories, nested menus, etc.
+*   **Key Features:**
+    *   Render nested data as an unordered list (`<ul>`).
+    *   Nodes can be expanded and collapsed.
+    *   Supports node labels and potentially icons or other custom content.
+*   **Dependencies:** `js/base.js`, `js/treelist.css`. Requires data in a hierarchical structure (e.g., an array of objects with nested children arrays).
+*   **How to Use / API Highlights / Examples:**
+
+    **Example 1: Rendering a basic tree**
+
+    *   **Input:** A target DOM element (where the tree will be rendered) and an array representing the tree structure.
+    *   **Code Snippet:**
+        ```html
+        <div id="treeContainer"></div>
+
+        <script>
+            // Sample hierarchical data
+            const treeData = [
+                {
+                    label: 'Documents',
+                    children: [
+                        { label: 'Report.pdf' },
+                        { label: 'Presentation.pptx' }
+                    ]
+                },
+                {
+                    label: 'Images',
+                    children: [
+                        { label: 'Nature', children: [{ label: 'forest.jpg' }] },
+                        { label: 'Cities' }
+                    ]
+                },
+                { label: 'Videos' }
+            ];
+
+            JCGWeb.addEvent(document, 'DOMContentLoaded', function() {
+                 const container = JCGWeb.id('treeContainer');
+                 if (container) {
+                    // Render the tree inside the container
+                    JCGWeb.TreeList.render(container, treeData);
+                    console.log('Tree rendered.');
+                 } else {
+                    console.error('Tree container not found.');
+                 }
+            });
+        </script>
+        ```
+    *   **Output:** An interactive tree structure will be generated inside the `div#treeContainer`. Parent nodes ('Documents', 'Images', 'Nature') will be collapsible.
+    *   **Explanation:** The `JCGWeb.TreeList.render(containerElement, dataArray)` method takes the target element and the hierarchical data array to build the tree UI. The data structure is expected to have `label` properties for node text and optional `children` arrays for nested items.
+
+### Page Memory / State Persistence (`js/pagememory.js`)
+
+*   **Description:** Provides utilities to persist the state of specific HTML elements or user interface configurations across page loads using `localStorage`. This is useful for remembering things like scroll positions, form input values, or the expanded/collapsed state of UI elements.
+*   **Key Features:**
+    *   Save the state of an element or value to `localStorage`.
+    *   Load the saved state on page load.
+    *   Associate states with unique keys.
+*   **Dependencies:** `js/base.js`. Relies on the browser's native `localStorage` API.
+*   **How to Use / API Highlights / Examples:**
+
+    **Example 1: Persisting an input field value**
+
+    *   **Input:** An input element and a unique storage key.
+    *   **Code Snippet:**
+        ```html
+        <input type="text" id="persistentInput" placeholder="Enter something...">
+
+        <script>
+            JCGWeb.addEvent(document, 'DOMContentLoaded', function() {
+                const inputElement = JCGWeb.id('persistentInput');
+                const storageKey = 'myInputState';
+
+                if (inputElement) {
+                    // Load saved value on page load
+                    const savedValue = JCGWeb.PageMemory.get(storageKey);
+                    if (savedValue !== null) {
+                        inputElement.value = savedValue;
+                        console.log(`Loaded saved value for input: "${savedValue}"`);
+                    } else {
+                        console.log('No saved value found for input.');
+                    }
+
+                    // Save value whenever the input changes
+                    JCGWeb.addEvent(inputElement, 'input', function() {
+                        JCGWeb.PageMemory.set(storageKey, inputElement.value);
+                        console.log(`Saved value for input: "${inputElement.value}"`);
+                    });
+                }
+            });
+        </script>
+        ```
+    *   **Output:** When you type into the input field, its value is saved to `localStorage`. If you refresh the page, the saved value will be loaded back into the input field.
+    *   **Explanation:** `JCGWeb.PageMemory.get(key)` retrieves a saved value. `JCGWeb.PageMemory.set(key, value)` saves a value. This pattern can be extended to save other types of state, like the scroll position of a container or the checked state of checkboxes.
+
+### Controller (`js/controller.js`)
+
+*   **Description:** While not explicitly detailed in the analysis, a file named `controller.js` in a client-side context often suggests logic for handling user interactions, managing application state flow, or coordinating between different components (like views and data utilities). It likely serves as a central point for event handling and directing actions based on user input or application state changes.
+*   **Key Features:** (Inferred)
+    *   Event handling layer.
+    *   Logic for responding to UI events.
+    *   Coordination between different `JCGWeb` modules.
+*   **Dependencies:** `js/base.js`, potentially other `JCGWeb` modules.
+*   **How to Use / API Highlights / Examples:** Usage would depend heavily on its specific implementation, but it would likely involve initializing the controller and potentially binding UI elements to controller methods.
+
+    **Example (Inferred): Initializing a Controller**
+
+    *   **Code Snippet:**
+        ```javascript
+        JCGWeb.addEvent(document, 'DOMContentLoaded', function() {
+            // Assuming Controller requires initialization
+            if (JCGWeb.Controller && typeof JCGWeb.Controller.init === 'function') {
+                 JCGWeb.Controller.init();
+                 console.log('Controller initialized.');
+            }
+        });
+        ```
+    *   **Explanation:** This is speculative based on typical client-side controller patterns. The actual implementation in `js/controller.js` would define its specific API and how it interacts with the page.
+
+### Demonstration Script (`script.js`)
+
+*   **Description:** This file serves as the main script for the `index.html` demo page. It imports and orchestrates the usage of various utilities from the `js/` directory, demonstrating how they can be integrated and used together in a typical web application context.
+*   **Purpose:** To showcase the functionalities of the different `JCGWeb` components and provide working examples for users exploring the repository. It likely contains code that fetches dummy data, initializes components like `TableSorter`, `ThemeControl`, and `TreeList`, and sets up event listeners using the core utilities.
+*   **Dependencies:** Depends on all other relevant `.js` files being loaded before it.
+*   **Usage:** This file is not a utility to be used *by* other scripts but rather the script that *uses* the utilities for demonstration purposes. Reviewing `script.js` is essential to understand how the various `JCGWeb` components are intended to be initialized and used together.
+
+### Dummy Data (`dummy/`)
+
+*   **Description:** The `dummy/` directory contains static JSON files (`products.json`, `users.json`) providing mock data. This data is likely used by `script.js` or other demo code to populate tables, lists, or other UI elements, allowing the utilities to be demonstrated without needing a live backend.
+*   **Usage:** These files are typically fetched using standard web requests (e.g., `fetch` API) by client-side JavaScript during development or demonstration.
+
+    **Example: Fetching dummy data**
+
+    *   **Code Snippet:**
+        ```javascript
+        async function loadDummyData() {
+            try {
+                const productsResponse = await fetch('dummy/products.json');
+                const products = await productsResponse.json();
+                console.log('Loaded products:', products);
+
+                const usersResponse = await fetch('dummy/users.json');
+                const users = await usersResponse.json();
+                console.log('Loaded users:', users);
+
+                // Now you can use 'products' and 'users' data with other JCGWeb utilities
+                // e.g., populate a table using TableSorter, render a tree list, etc.
+
+            } catch (error) {
+                console.error('Failed to load dummy data:', error);
+            }
         }
 
-        try {
-            // Fetch product data from dummy/
-            const productData = await fetchDummyData('dummy/products.json');
+        JCGWeb.addEvent(document, 'DOMContentLoaded', loadDummyData);
+        ```
+    *   **Explanation:** Demonstrates how client-side code would typically fetch and use the JSON data provided in the `dummy/` directory.
 
-            // Assuming productData is structured appropriately or needs transformation
-            // ... potentially transform productData into a tree structure format ...
-            const treeData = { name: "Products", children: productData }; // Simplified assumption
+## ⚙️ Configuration
 
-            // Render the tree in a container
-            const containerId = 'productTreeContainer'; // Assuming this ID exists in index.html
-            if (JCGWeb.Functions.getElementById(containerId)) {
-                 JCGWeb.TreeListManager.createTreeList(containerId, treeData);
-                 console.log('Product tree rendered.');
-            } else {
-                 console.log('Container #productTreeContainer not found.');
-            }
+This repository primarily consists of client-side JavaScript utilities and does not have a centralized, project-level configuration file (like a `.env` or `config.json`) in the typical sense.
 
-            // Initialize theme control
-            JCGWeb.themeControl.init();
-            console.log('Theme control initialized.');
+Individual components might have internal options or parameters that can be configured during their instantiation or through method calls, as seen in the usage examples (e.g., specifying the message type for `JCGWeb.PopupMessage.show`).
 
-            // Setup theme toggle button listeners (assuming buttons exist in index.html)
-            const invertButton = JCGWeb.Functions.getElementById('toggleInvert');
-            if (invertButton) {
-                 invertButton.addEventListener('click', () => JCGWeb.themeControl.toggleInverted());
-            }
-            // ... similar for hue shifting ...
+The `dummy/` directory contains static data files (`products.json`, `users.json`) which serve as mock data sources, but these are not runtime configuration files for the utilities themselves.
 
-        } catch (error) {
-            console.error('Failed to load data or initialize components:', error);
-            JCGWeb.popupMessage.show('Failed to load demo data.', 'error', 0); // Use popup if available
-        }
-    });
-    ```
-*   **Explanation:** This snippet illustrates the typical flow: wait for the DOM, fetch necessary data (potentially asynchronous), prepare the data for components (like the tree list), initialize and use the components, and set up event handlers for user interaction.
+## ⚠️ Limitations and Edge Cases
 
-### 📦 Dummy Data (`dummy/`)
+*   **Browser Compatibility:** While `js/base.js` and `js/common.js` might include some basic compatibility checks, extensive testing across a wide range of legacy browsers is not guaranteed. Features relying on newer APIs like `MutationObserver` (`js/observer.js`) or `AbortController` (`js/pid.js`) will only work in modern browsers.
+*   **Performance:** Utilities like `TableSorter` might experience performance limitations with extremely large datasets as sorting is performed client-side within the browser's main thread.
+*   **Complexity:** The `JCGWeb.Object` utility's path manipulation might have limitations with complex key names or advanced array manipulation beyond simple index access.
+*   **Specificity:** CSS files (`popupmessage.css`, `themeControl.css`, `treelist.css`, `style.css`) provide default styling, but integration into an existing project may require adjusting CSS specificity or overriding styles to match the project's design system.
 
-**Files:** `dummy/products.json`, `dummy/users.json`
+## 🤝 Contributing
 
-**Purpose:** These JSON files contain static, structured data examples for products and users. They are intended for use during development and demonstration, providing mock data that components like `TableSorter` or `TreeListCreator` can consume.
+If you are interested in contributing to this project, please consider the following:
 
-**Key Features:**
-*   Provides sample product data (likely list of products with properties).
-*   Provides sample user data (likely list of users with properties).
-*   Standard JSON format, easily parseable by JavaScript.
+*   This repository is intended as a collection of reusable frontend utilities. Contributions that enhance existing utilities, add new general-purpose components, or improve documentation are welcome.
+*   Ensure new code adheres to the existing structure (e.g., using the `JCGWeb` namespace) and coding style.
+*   Provide clear documentation and usage examples for any new features or components.
+*   Submit a Pull Request with a clear description of the changes.
 
-**Dependencies:** None. These are static data files.
-
-**How to Use:**
-
-These files are typically fetched asynchronously using the browser's `fetch` API or `XMLHttpRequest` from your JavaScript code (like `script.js`) and then processed before being passed to components.
-
-**Example 1: Fetching and Logging Dummy Data**
-
-*   **Description:** Shows how to fetch the `products.json` file.
-*   **Input:** The path to the JSON file.
-*   **Code Snippet:**
-    ```javascript
-    async function loadProducts() {
-        try {
-            const response = await fetch('dummy/products.json');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            console.log('Successfully loaded product data:', data);
-            // Now you can use 'data' with components, e.g., TreeListManager or TableSorter
-        } catch (error) {
-            console.error('Could not load product data:', error);
-        }
-    }
-
-    // Call the function to load data
-    document.addEventListener('DOMContentLoaded', () => {
-        loadProducts();
-    });
-    ```
-*   **Output:** Logs the parsed JavaScript object/array from `products.json` to the console upon page load (assuming the file is accessible).
-*   **Explanation:** This is the standard pattern for loading external static data files in a web browser. The fetched data can then be used to populate UI elements or initialize data-driven components.
-
-## Troubleshooting
-
-*   **Component Not Found:** Ensure the relevant `.js` file for the component is included in your HTML *before* the script that tries to use it. Check the browser's developer console for JavaScript errors like `[ComponentName] is not defined`.
-*   **CSS Not Applied:** Ensure the component's `.css` file (e.g., `popupmessage.css`, `treelist.css`, `themeControl.css`) is linked in your HTML `<head>`. Check the browser's developer tools "Elements" tab to see if the expected CSS classes are applied and the "Sources" and "Network" tabs to ensure the CSS files are loading correctly.
-*   **TableSorter Not Working:** Verify the HTML table has a `<thead>` and `<tbody>` structure. Ensure the `TableSorter` is initialized *after* the table element exists in the DOM.
-*   **pageMemory Not Saving/Loading:** Check the browser's developer tools "Application" tab -> "Local Storage" to see if data is being saved under the page's origin. Ensure the container element passed to `pageMemory` exists and contains supported input types (input, textarea, select).
-*   **Dummy Data Not Loading:** Ensure the path to the JSON file (e.g., `dummy/products.json`) is correct relative to your `index.html` or the server's root. Check the browser's developer tools "Network" tab for failed requests (404 Not Found) when trying to fetch the JSON. Ensure your web server is configured to serve `.json` files with the correct MIME type (`application/json`).
-
-## Contributing
-
-This repository is intended as a collection of reusable components. Contributions are welcome! If you find a bug or have an improvement, please consider opening an issue or submitting a pull request.
-
-General steps for contributing:
-1.  Fork the repository.
-2.  Create a new branch for your feature or bugfix.
-3.  Make your changes, adhering to the existing coding style.
-4.  Test your changes thoroughly.
-5.  Submit a pull request with a clear description of your changes.
-
-## License
+## 📄 License
 
 MIT License
 
@@ -852,4 +755,4 @@ SOFTWARE.
 
 ## 🚧 Work in Progress
 
-This repository and its documentation are under active development. Features and structure may change as components are refined or added.
+This repository and its documentation are under active development. Features and structure may change.
