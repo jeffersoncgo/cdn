@@ -460,6 +460,6 @@ class pageMemory {
     }
 }
 
-if (typeof JCGWEB != 'undefined') {
+if (typeof JCGWeb != 'undefined') {
     JCGWeb.pageMemory = new pageMemory();
 }
