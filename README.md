@@ -47,25 +47,25 @@ This project is primarily a collection of client-side assets. To use the compone
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Your Project</title>
-            <link rel="stylesheet" href="style.css">
-            <link rel="stylesheet" href="js/popupmessage.css">
-            <link rel="stylesheet" href="js/themeControl.css">
-            <link rel="stylesheet" href="js/treelist.css">
+            <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/style.css">
+            <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/popupmessage.css">
+            <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/themeControl.css">
+            <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/treelist.css">
             <!-- Include core JS files first -->
-            <script src="js/base.js"></script>
-            <script src="js/common.js"></script>
-            <script src="js/object.js"></script>
-            <script src="js/observer.js"></script>
-            <script src="js/pid.js"></script>
-            <script src="js/pagememory.js"></script>
-            <script src="js/controller.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/base.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/common.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/object.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/observer.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/pid.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/pagememory.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/controller.js"></script>
             <!-- Include component JS files -->
-            <script src="js/TableSorter.js"></script>
-            <script src="js/popupmessage.js"></script>
-            <script src="js/themeControl.js"></script>
-            <script src="js/treelist.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/TableSorter.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/popupmessage.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/themeControl.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/treelist.js"></script>
             <!-- Include your main application script -->
-            <script src="script.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/script.js"></script>
         </head>
         <body>
             <!-- Your content here -->
