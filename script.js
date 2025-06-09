@@ -337,7 +337,3 @@ if (typeof pageMemory !== 'undefined') {
 
 // themeControl.js initializes itself by adding a button.
 // No specific demo function needed here, just ensure the page has styled elements.
-
-if (typeof JCGWEB != 'undefined') {
-  JCGWeb.pageMemory = new pageMemory();
-}
