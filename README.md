@@ -57,8 +57,8 @@ This project is primarily a collection of client-side assets. To use the compone
             <script src="https://jeffersoncgo.github.io/cdn/js/object.js"></script>
             <script src="https://jeffersoncgo.github.io/cdn/js/observer.js"></script>
             <script src="https://jeffersoncgo.github.io/cdn/js/pid.js"></script>
-            <script src="https://jeffersoncgo.github.io/cdn/js/pagememory.js"></script>
             <script src="https://jeffersoncgo.github.io/cdn/js/controller.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/pagememory.js"></script>
             <!-- Include component JS files -->
             <script src="https://jeffersoncgo.github.io/cdn/js/TableSorter.js"></script>
             <script src="https://jeffersoncgo.github.io/cdn/js/popupmessage.js"></script>
