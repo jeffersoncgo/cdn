@@ -1,7 +1,5 @@
 String.prototype.eachWordUp = function () {
-  let string = this;
-  if (typeof string !== 'string') return string;
-  return string
+  return this
     .toLowerCase()
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -9,10 +7,8 @@ String.prototype.eachWordUp = function () {
 };
 
 String.prototype.firstUpCase = function () {
-  let string = this;
-  if (typeof string !== 'string') return string;
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
+  return this.charAt(0).toUpperCase() + this.slice(1);
+};
 
 
 
