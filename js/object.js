@@ -111,6 +111,18 @@ function searchInArray(dataArray, query, fields = null) {
   return result;
 }
 
+function ArraySort(array = [], ignoreCase = false) {
+  return array.sort((a, b) => {
+    if (ignoreCase) {
+      a = String(a).toLowerCase();
+      b = String(b).toLowerCase();
+    }
+    if (a < b) return -1;
+    if (a > b) return 1;
+    return 0;
+  });
+}
+
 JCGWeb.Functions.addEvent = function (event = "onDone", callback) {
   this.events[event].push(callback);
 }
