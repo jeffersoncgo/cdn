@@ -1,3 +1,6 @@
+const _searchCache = new WeakMap();
+
+
 const GetValueFromPath = (path, obj) => path.split('.').reduce((o, i) => o[i], obj);
 const MakeObjFromPath = (path, value, obj, spliter = '.') => {
   let paths = path.split(spliter);
@@ -6,6 +9,17 @@ const MakeObjFromPath = (path, value, obj, spliter = '.') => {
   lastObj[last] = value;
   return obj;
 }
+
+function getFlattenedCache(dataArray) {
+  if (_searchCache.has(dataArray)) {
+    return _searchCache.get(dataArray).flattened;
+  }
+
+  const flattened = dataArray.map(obj => flattenValues(obj));
+  _searchCache.set(dataArray, { flattened, results: new Map() });
+  return flattened;
+}
+
 function flattenValues(obj, prefix = '') {
   let values = [];
   for (const [key, value] of Object.entries(obj)) {
@@ -53,7 +67,6 @@ function cleanObject(obj) {
   return obj;
 }
 
-
 function mergeObjects(obj1, obj2, seen = new WeakSet()) {
   if (seen.has(obj2)) return obj1;
   seen.add(obj2);
@@ -70,22 +83,32 @@ function mergeObjects(obj1, obj2, seen = new WeakSet()) {
 }
 
 /**
- * Main search function.
- * @param {Array<Object>} dataArray - Array of data objects.
- * @param {string} query - Search term (case insensitive).
- * @param {Array<string>} [fields] - Optional list of fields to search (dot notation), or all if omitted.
- * @returns {Array<Object>} - Filtered array that match the query.
+ * Optimized search with query and field-level memoization.
+ * @param {Array<Object>} dataArray
+ * @param {string} query
+ * @param {Array<string>|null} fields
+ * @returns {Array<Object>}
  */
 function searchInArray(dataArray, query, fields = null) {
-  const normalizedQuery = query.toLowerCase();
-  return dataArray.filter(data => {
-    const flattened = flattenValues(data);
+  const flattened = getFlattenedCache(dataArray);
+  const cache = _searchCache.get(dataArray);
 
-    return flattened.some(({ path, value }) => {
+  const normalizedQuery = query.toLowerCase();
+
+  const key = JSON.stringify({ query: normalizedQuery, fields });
+
+  if (cache.results.has(key))
+    return cache.results.get(key);
+
+  const result = dataArray.filter((data, index) => {
+    return flattened[index].some(({ path, value }) => {
       const inFields = !fields || fields.includes(path);
       return inFields && value.toLowerCase().includes(normalizedQuery);
     });
   });
+
+  cache.results.set(key, result);
+  return result;
 }
 
 JCGWeb.Functions.addEvent = function (event = "onDone", callback) {
@@ -112,7 +135,6 @@ JCGWeb.Functions.execEvents = function (event, ...params) {
     }
   });
 }
-
 
 if (typeof module != 'undefined') module.exports = {
   GetValueFromPath,
