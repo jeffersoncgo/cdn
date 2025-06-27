@@ -51,6 +51,12 @@ Array.prototype.toUpperCase = function () {
   return this.toCase(false)
 };
 
+Array.prototype.removeDuplicates = function () {
+  return [...new Set(this)];
+};
+
+
+
 
 
 
