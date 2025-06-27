@@ -159,8 +159,7 @@ class pageMemory {
 
     // Get elements marked with 'save' attribute
     getElementsToSave() {
-        const elements = document.querySelectorAll('[save]');
-        return Array.from(elements).map(this.getElementInfo);
+        return [...document.querySelectorAll('[save]'), ...document.querySelectorAll('[data-save]')].map(this.getElementInfo);
     }
 
     // Save current page information to memory and localStorage
@@ -459,4 +458,8 @@ class pageMemory {
             delete this
         })
     }
+}
+
+if (typeof JCGWeb != 'undefined') {
+    JCGWeb.pageMemory = new pageMemory();
 }

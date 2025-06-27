@@ -1,822 +1,444 @@
-# 🚀 JCGWEB CDN - Client-Side JavaScript Utilities
+# 🚀 README AI - cdn
 
-Welcome to JCGWEB CDN! This repository hosts a collection of versatile JavaScript scripts designed for client-side web development. These utilities aim to simplify common tasks, enhance user interfaces, and manage application state with ease.
+This repository houses a collection of client-side JavaScript utilities and UI components designed to enhance web page interactivity and manage client-side state. It provides a modular toolkit for front-end development, offering functionalities ranging from core DOM manipulation and event handling to advanced UI elements like sortable tables, dynamic popup messages, theme control, and interactive tree structures. The project also includes utilities for managing asynchronous operations, sequential ID generation, and persisting simple page state using browser storage. Intended for web developers, this library facilitates the creation of dynamic and responsive web interfaces without relying on server-side frameworks for basic functionalities.
 
----
+## 📋 Table of Contents
 
-## 📜 General Usage
+*   [✨ Features](#-features)
+*   [⚙️ Installation / Setup](#️-installation--setup)
+*   [📂 Project Structure](#-project-structure)
+*   [📖 Detailed Usage / API Documentation](#-detailed-usage--api-documentation)
+*   [🔧 Configuration](#-configuration)
+*   [🔒 Security & Safety Highlights](#-security--safety-highlights)
+*   [🚧 Limitations and Edge Cases](#-limitations-and-edge-cases)
+*   [🤝 Contributing](#-contributing)
+*   [📜 License](#-license)
+*   [🚧 Work in Progress](#-work-in-progress)
 
-To use any of these scripts in your project, you can include them directly via a `<script>` tag, pointing to their location in this CDN.
+## ✨ Features
 
-```html
-<script src="[https://jeffersoncgo.github.io/cdn/js/script.js](https://jeffersoncgo.github.io/cdn/js/script.js)"></script>
+*   **Core Utilities:** Essential functions for DOM manipulation, event handling, and object operations.
+*   **Asynchronous Control:** Tools for managing and potentially canceling asynchronous processes.
+*   **Sequential ID Generation:** Simple mechanism for generating unique IDs client-side.
+*   **Page State Persistence:** Ability to save and restore simple page element states using `localStorage`.
+*   **Sortable Tables:** A JavaScript component (`TableSorter`) for making HTML tables sortable client-side.
+*   **Popup Messages:** Dynamic, temporary message overlays (`popupmessage`) for user feedback.
+*   **Dynamic Theme Control:** Functionality (`themeControl`) to manage and apply visual themes, including saving theme preferences.
+*   **Interactive Tree Structures:** Component (`treelist`) to render and manage collapsible hierarchical data displays.
+*   **Observer Pattern:** Implementation of an Observer (`observer`) for reacting to DOM changes or other events.
+*   **Dummy Data:** Includes mock JSON data (`dummy/`) for testing and demonstration purposes.
+
+## ⚙️ Installation / Setup
+
+This project is primarily a collection of client-side assets. To use the components and utilities:
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/jeffersoncgo/cdn.git
+    ```
+2.  **Include the files:**
+    *   Navigate to the cloned directory.
+    *   Include the necessary `.js` and `.css` files in your HTML documents using `<script>` and `<link>` tags. Ensure the core utility files (`base.js`, `common.js`, `object.js`, etc.) are included before components that depend on them.
+    *   For example, to include the main script and styles in `index.html`:
+        ```html
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Your Project</title>
+            <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/style.css">
+            <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/popupmessage.css">
+            <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/themeControl.css">
+            <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/treelist.css">
+            <!-- Include core JS files first -->
+            <script src="https://jeffersoncgo.github.io/cdn/js/base.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/common.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/object.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/observer.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/pid.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/controller.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/pagememory.js"></script>
+            <!-- Include component JS files -->
+            <script src="https://jeffersoncgo.github.io/cdn/js/TableSorter.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/popupmessage.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/themeControl.js"></script>
+            <script src="https://jeffersoncgo.github.io/cdn/js/treelist.js"></script>
+            <!-- Include your main application script -->
+            <script src="https://jeffersoncgo.github.io/cdn/script.js"></script>
+        </head>
+        <body>
+            <!-- Your content here -->
+        </body>
+        </html>
+        ```
+
+No server-side setup or build process is strictly required for basic usage, as this is a collection of standalone client-side assets.
+
+## 📂 Project Structure
+
+<details>
+<summary>Click to Expand</summary>
+
+```
+.
+├── .github
+├── dummy/
+│   ├── products.json
+│   └── users.json
+├── js/
+│   ├── base.js
+│   ├── common.js
+│   ├── controller.js
+│   ├── object.js
+│   ├── observer.js
+│   ├── pagememory.js
+│   ├── pid.js
+│   ├── popupmessage.css
+│   ├── popupmessage.js
+│   ├── TableSorter.js
+│   ├── themeControl.css
+│   ├── themeControl.js
+│   ├── treelist.css
+│   └── treelist.js
+├── index.html
+├── README.md
+├── script.js
+└── style.css
 ```
 
-Ensure that dependencies are loaded before the scripts that rely on them. For example, `base.js` and `common.js` are often prerequisites for other scripts.
+</details>
 
----
+*   `.github/`: Contains GitHub-specific configuration files, likely for workflows or issue templates.
+*   `dummy/`: Stores static JSON files (`products.json`, `users.json`) providing mock data, useful for testing components or demonstrating data loading.
+*   `js/`: This directory is the core of the library, containing all the modular JavaScript files and associated CSS for specific components. Each `.js` file typically represents a distinct utility or UI component (e.g., `TableSorter.js`, `popupmessage.js`, `themeControl.js`, `treelist.js`), while others (`base.js`, `common.js`, `object.js`, `controller.js`, `observer.js`, `pagememory.js`, `pid.js`) provide foundational utilities and patterns.
+*   `index.html`: The main entry point, likely serving as a demonstration page that includes and utilizes the JavaScript and CSS assets from the `js/` directory and the data from `dummy/`.
+*   `README.md`: This file, providing documentation for the repository.
+*   `script.js`: A central script, likely responsible for orchestrating the usage of various components and utilities from the `js/` directory, potentially including loading data from `dummy/`.
+*   `style.css`: The main stylesheet for the demonstration page (`index.html`), providing general styling.
 
-## 🛠️ Core Utilities
+## 📖 Detailed Usage / API Documentation
 
-These scripts provide foundational functionalities and helper methods used across various other modules.
+This repository provides a suite of client-side JavaScript components and utilities, often organized under a potential `JCGWeb` namespace. Below is a breakdown of key modules and how to use them, synthesized from the file analyses.
 
-### 🔩 `base.js`
+### ✨ Core Utilities (e.g., `base.js`, `common.js`, `object.js`, `controller.js`, `observer.js`, `pid.js`, `pagememory.js`)
 
-> **Core foundational script for the JCGWeb namespace and essential DOM utilities.**
+These files offer foundational functionalities used by other components or available for general use. They cover DOM manipulation, event handling, object operations, asynchronous control, sequential ID generation, observing DOM changes, and persisting page state.
 
-`base.js` initializes the `JCGWeb` global namespace, which is used by many other scripts in this collection. It provides a set of fundamental tools for DOM manipulation, event handling, and mouse tracking.
+*   **Description:** A collection of core helper functions and classes for common web development tasks. They provide abstractions over standard browser APIs and implement useful patterns like the Observer and a simple PID (Process ID) system for managing asynchronous operations. `pagememory.js` offers a simple way to save and restore the state of specific page elements using `localStorage`.
+*   **Key Features:**
+    *   Simplified DOM element selection and manipulation.
+    *   Cross-browser event handling utilities.
+    *   Object property manipulation and checking.
+    *   Mechanism for tracking and potentially cancelling asynchronous tasks (`pid`).
+    *   Generating unique client-side identifiers.
+    *   Observing DOM attribute changes (via `observer`).
+    *   Saving and restoring input values and potentially other element states (`pagememory`).
+*   **Dependencies:** Primarily relies on native browser APIs. Components might depend on utilities defined earlier in the inclusion order (e.g., `common.js` functions used by `controller.js`).
 
-* **Namespace:** `JCGWeb`
-    * `JCGWeb.Variables.Mouse`: Stores current mouse X and Y coordinates.
-    * `JCGWeb.Functions`: Container for utility functions.
-    * `JCGWeb.Observer`: An instance of `Observer` (from `observer.js`) attached to `document.body` by default on page load, used for global mouse position tracking.
-    * `JCGWeb.PID`: (Assumed) A utility for generating unique process/instance IDs, used by `windows.js` and potentially others.
+#### How to Use / API Highlights / Examples:
 
-* **Key Features & Functions:**
-    * `JCGWeb.Functions.toObeserverGetMousePos(event)`: Updates `JCGWeb.Variables.Mouse` with event coordinates.
-    * `JCGWeb.Functions.MakeSafePos(width, height, left, top, parent)`: Calculates safe on-screen coordinates for an element within its parent, preventing it from going off-screen.
-    * `JCGWeb.Functions.CreateElementFromHTML(htmlString)`: Parses an HTML string and returns an array of DOM elements.
-    * `JCGWeb.Functions.FindComponentFromEvent(event, LookFor, ValueToLook)`: Traverses up the DOM tree from an event target to find a parent element matching a specified criteria (class, id, tag, attribute, attribute-value).
-    * `JCGWeb.Functions.getUniqueSelector(element)`: Generates a unique CSS selector for a given DOM element.
-    * `JCGWeb.Functions.getUniqueSelectorOnClick()`: Adds a click listener to the page that logs and stores the unique selector of the clicked element.
+Usage typically involves calling static methods or functions exposed globally or within a top-level namespace (like `JCGWeb.Functions`).
 
-* **Dependencies:**
-    * `observer.js` (instantiated as `JCGWeb.Observer`)
+**Example 1: Using a Common Utility (e.g., `getById` or similar)**
 
-* **How to Use:**
-    Include `base.js` in your HTML. Its functionalities are then available under the `JCGWeb` namespace.
+This example demonstrates selecting a DOM element using a common utility function.
 
+*   **Input:** An element ID string.
+*   **Code Snippet:**
+    ```javascript
+    // Assuming a function like JCGWeb.Functions.getById exists
+    const myElement = JCGWeb.Functions.getById('myDiv');
+
+    if (myElement) {
+        console.log('Element found:', myElement);
+        myElement.textContent = 'Content updated by script!';
+    } else {
+        console.error('Element not found!');
+    }
+    ```
+*   **Output:** Logs the element if found and updates its text content.
+*   **Explanation:** Core utilities often wrap common DOM tasks, making them potentially simpler or more robust across different browser versions compared to raw `document.getElementById`.
+
+**Example 2: Using Page Memory (`pagememory.js`)**
+
+This example shows how to save and load the value of an input field.
+
+*   **Input:** An input element and potentially a unique key.
+*   **Code Snippet:**
     ```html
-    <script src="https://jeffersoncgo.github.io/cdn/js/base.js"></script>
+    <input type="text" id="myInput" data-memory-key="userInput">
+    <button onclick="saveInput()">Save</button>
+    <button onclick="loadInput()">Load</button>
+
     <script>
-        // Example: Get unique selector for an element
-        const myElement = document.getElementById('myElement');
-        const selector = JCGWeb.Functions.getUniqueSelector(myElement);
-        console.log(selector);
+    // Assuming JCGWeb.PageMemory exists and is initialized
+    function saveInput() {
+        const inputElement = document.getElementById('myInput');
+        // saveElementState function likely takes element or key and saves its state
+        JCGWeb.PageMemory.saveElementState(inputElement);
+        console.log('Input state saved.');
+    }
 
-        // Example: Create an element from HTML
-        const [newDiv] = JCGWeb.Functions.CreateElementFromHTML('<div>Hello World</div>');
-        document.body.appendChild(newDiv);
+    function function loadInput() {
+        const inputElement = document.getElementById('myInput');
+         // loadElementState function likely takes element or key and restores its state
+        JCGWeb.PageMemory.loadElementState(inputElement);
+        console.log('Input state loaded.');
+    }
+
+    // On page load, attempt to load state for all elements with data-memory-key attribute
+    document.addEventListener('DOMContentLoaded', () => {
+         JCGWeb.PageMemory.loadAll(); // Or similar function to initialize/load
+    });
     </script>
     ```
+*   **Output:** Saves the current value of the input to `localStorage` and loads it back.
+*   **Explanation:** `pagememory.js` provides a simple way to persist UI state across page reloads or sessions, enhancing user experience for forms or interactive elements. The mechanism likely relies on data attributes (like `data-memory-key`) to identify elements and their associated storage keys.
 
----
+### 📊 Component: TableSorter (`TableSorter.js`)
 
-### 🔧 `common.js`
+*   **Description:** A JavaScript class or set of functions designed to make standard HTML `<table>` elements sortable by clicking on column headers. It manipulates the DOM to reorder rows based on the content of cells in the clicked column, handling different data types (text, numbers).
+*   **Key Features:**
+    *   Sort HTML tables dynamically.
+    *   Supports sorting by different columns.
+    *   Handles ascending and descending order.
+    *   Likely attempts to infer data types for appropriate sorting.
+*   **Dependencies:** Relies on core DOM manipulation utilities from `js/`.
 
-> **A collection of common utility functions for various tasks.**
+#### How to Use / API Highlights / Examples:
 
-The `utils` class provides static methods for common operations like URL manipulation, dynamically adding scripts and styles, and other helper functions.
+Usage involves selecting the table and initializing the sorter.
 
-* **Key Features & Functions (`utils` class):**
-    * **Script Information:**
-        * `utils.CurrentScriptUrl`: Gets the URL of the currently executing script.
-        * `utils.CurrentScriptName`: Gets the filename of the currently executing script.
-        * `utils.CurrentUrlToFile(FileName)`: Replaces the current script's filename in its URL with a new filename.
-    * **URL Utilities:**
-        * `utils.CurrentUrl`, `utils.CurrentUrlPath`, `utils.CurrentUrlParams`, etc.: Get various parts of the current window's URL.
-    * **DOM Manipulation:**
-        * `utils.AddScript(Url)`: Dynamically adds a `<script>` tag to the document head.
-        * `utils.AddStyle(Url)`: Dynamically adds a `<link rel="stylesheet">` tag to the document head.
-        * `utils.AddMeta(Name, Content)`: Dynamically adds a `<meta>` tag to the document head.
-    * **Type Checking & Object Manipulation:**
-        * `utils.isClass(input)`: Checks if the input is a JavaScript class.
-        * `utils.makeObjbyPath(obj, path, value)`: Creates or updates a nested property in an object based on a dot-separated path string.
-    * **File Utilities:**
-        * `utils.safeWindowsFileName(filename)`: Sanitizes a string to be a safe filename for Windows.
+**Example 1: Basic Table Sorting**
 
-* **Dependencies:** None.
+This example initializes sorting on a table with ID `mySortableTable`.
 
-* **How to Use:**
-    Call the static methods directly from the `utils` class.
-
-    ```html
-    <script src="https://jeffersoncgo.github.io/cdn/js/common.js"></script>
-    <script>
-        // Example: Add a stylesheet
-        utils.AddStyle('[https://example.com/styles.css](https://example.com/styles.css)');
-
-        // Example: Get current URL path
-        console.log(utils.CurrentUrlPath);
-
-        // Example: Create a nested object property
-        let myObj = {};
-        utils.makeObjbyPath(myObj, 'user.settings.theme', 'dark');
-        console.log(myObj); // { user: { settings: { theme: 'dark' } } }
-    </script>
-    ```
-
----
-
-## 👁️ DOM & Event Handling
-
-Scripts focused on observing and reacting to DOM changes and user interactions.
-
-### 🧿 `observer.js`
-
-> **A DOM Event and Mutation Observer Utility Class.**
-
-`Observer` is a lightweight utility class to monitor a DOM element for structural changes (via `MutationObserver`) and listen to a comprehensive list of user interaction events.
-
-* **Key Features:**
-    * 👂 Listens to a wide array of user interaction events (keyboard, mouse, clipboard, etc.).
-    * 🔁 Tracks DOM mutations (node additions/removals, attribute changes, character data changes).
-    * 🧩 Supports multiple callback functions for mutations and events.
-    * ♻️ Dynamically add/remove listeners and callbacks at runtime.
-    * 🧹 Provides methods to start, stop, and destroy observation.
-    * ⚙️ Configurable `MutationObserver` options (`config` property).
-
-* **Default Listeners:**
-    `click`, `mouseover`, `mouseout`, `mousemove`, `keydown`, `keyup`, `keypress`, `submit`, `input`, `change`, `focus`, `blur`, `load`, `unload`, `DOMContentLoaded`, `readystatechange`, `oncontextmenu`, `scroll`, `wheel`, `onresize`, `oncopy`, `oncut`, `onpaste`.
-
-* **Dependencies:** None.
-
-* **How to Use:**
-
-    ```html
-    <script src="https://jeffersoncgo.github.io/cdn/js/observer.js"></script>
-    <script>
-        const myElement = document.getElementById('myInteractiveElement');
-        const observer = new Observer(myElement); // Defaults to document.body if no element provided
-
-        // Callback for DOM mutations
-        observer.AddCallBack((mutationsList, observerInstance) => {
-            console.log('DOM mutated:', mutationsList);
-            // mutationsList is an array of MutationRecord objects
-        });
-
-        // Callback for DOM events
-        observer.AddCallBack((event) => {
-            if (event instanceof Event) { // Check if it's a DOM event
-                 console.log('User interacted:', event.type, event.target);
-            }
-        });
-
-        observer.Start(); // Start observing
-
-        // Later...
-        // observer.AddListener('dragstart'); // Add a new event type to listen for
-        // observer.RemoveCallBack(0); // Remove the first callback
-        // observer.Stop(); // Stop observing
-        // observer.Destroy(); // Stop and clean up
-    </script>
-    ```
-
-* **Constructor:**
-    `new Observer(targetElement = document.body)`
-    * `targetElement`: The DOM element to observe.
-
-* **API Highlights:**
-    * `AddCallBack(callbackFn)`: Adds a function to be called on mutations or events.
-    * `RemoveCallBack(index)`: Removes a callback by its index.
-    * `Start()`: Begins observation.
-    * `Stop()`: Halts observation.
-    * `AddListener(eventType)`: Adds a new event type to the list of listened events.
-    * `RemoveListener(eventType)`: Removes an event type.
-    * `RemoveAllListeners()`: Removes all event listeners.
-    * `RemoveAllCallBacks()`: Removes all registered callbacks.
-    * `Destroy()`: Stops observation and cleans up all listeners and callbacks.
-
----
-
-### 🎮 `controller.js`
-
-> **A utility class to control and manage asynchronous function execution, allowing for aborting previous calls.**
-
-`Controller` wraps a function to provide better control over its execution, especially useful for operations that might be triggered rapidly (like search-as-you-type or debounced actions) and where only the latest call is relevant.
-
-* **Key Features:**
-    * 🎁 Wraps an existing function.
-    * 🚦 Manages execution state (`running`).
-    * 🛑 Allows aborting an ongoing execution using `AbortController`.
-    * 🔔 Provides callbacks for `ondone`, `onerror`, and `onabort`.
-    * 🔄 Option to `AbortPreviousOnExecute`: If true, calling `exec()` while a previous execution is running will abort the old one.
-
-* **Dependencies:** None.
-
-* **How to Use:**
-
-    ```html
-    <script src="https://jeffersoncgo.github.io/cdn/js/controller.js"></script>
-    <script>
-        // Example function that might take time
-        async function fetchData(query, signal) {
-            console.log('Fetching data for:', query);
-            // Simulate an API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            if (signal.aborted) {
-                console.log('Fetch aborted for:', query);
-                throw new DOMException('Aborted', 'AbortError');
-            }
-            return `Data for ${query}`;
-        }
-
-        const onDataFetched = (result, query) => {
-            console.log('Success:', result, 'Original query:', query);
-        };
-
-        const onError = (error) => {
-            console.error('Error:', error);
-        };
-
-        const onAborted = (query) => {
-            console.log('Operation aborted by new call for query:', query);
-        };
-
-        // Create a controller, abort previous on new execution
-        const controlledFetch = new Controller(fetchData, onDataFetched, onError, onAborted, true);
-
-        // Execute the controlled function
-        controlledFetch.exec('first query'); // Starts fetching
-
-        setTimeout(() => {
-            controlledFetch.exec('second query'); // Aborts 'first query', starts 'second query'
-        }, 500);
-
-        // To manually abort
-        // setTimeout(() => {
-        //     controlledFetch.abort('Manually aborted second query');
-        // }, 1200);
-
-        // Static bind usage (less common, binds 'this' context if needed for the function)
-        // class MyClass {
-        //   constructor() {
-        //     this.data = "class data";
-        //     this.myMethod = Controller.bind(this.actualMethod, null, null, null, true);
-        //   }
-        //   async actualMethod(param, signal) {
-        //     console.log(this.data, param);
-        //     await new Promise(r => setTimeout(r, 500));
-        //     if(signal.aborted) throw new Error('Aborted');
-        //     return "done";
-        //   }
-        // }
-        // const instance = new MyClass();
-        // instance.myMethod("call1");
-        // instance.myMethod("call2"); // call1 will be aborted
-    </script>
-    ```
-
-* **Constructor:**
-    `new Controller(func, ondone, onerror, onabort, AbortPreviousOnExecute = false)`
-    * `func`: The function to be controlled. It will receive an `AbortSignal` as its last argument.
-    * `ondone`: Callback executed when `func` completes successfully. Receives `(result, ...originalParams)`.
-    * `onerror`: Callback executed if `func` throws an error (not an `AbortError`). Receives `(error)`.
-    * `onabort`: Callback executed if the operation is aborted. Receives `(...originalParams)`.
-    * `AbortPreviousOnExecute`: Boolean, if true, new `exec` calls abort running ones.
-
-* **API Highlights:**
-    * `async exec(...params)`: Executes the wrapped function.
-    * `abort(...params)`: Manually aborts the currently running function.
-    * `static bind(...)`: A static helper to bind a function and wrap it in a Controller, returning the `exec` method.
-
----
-
-## 🧩 UI Components
-
-Scripts for creating and managing interactive user interface elements.
-
-### 🖼️ `windows.js`
-
-> **A comprehensive system for creating and managing draggable, resizable, and interactive windows or dialogs.**
-
-`windows.js` (via `JCGWeb.Windows`) allows you to create rich window-like interfaces within your web page. These windows can contain custom content, buttons, and support standard window operations.
-
-* **Key Features:**
-    * ✨ Creates `Custom_Window` instances.
-    * ↔️ Draggable and (optionally) resizable windows.
-    * 🏷️ Customizable title and icon.
-    * 🔘 Standard buttons (info, minimize, maximize, close) and custom buttons.
-    * 📦 Can host arbitrary HTML elements as content.
-    * 🪄 Helper methods for creating common popups (alerts, confirms) and media viewers.
-    * 🗂️ Manages multiple window instances.
-
-* **Dependencies:**
-    * `base.js` (for `JCGWeb.Functions`, `JCGWeb.PID`).
-    * An external `Config` object (e.g., `Config.UserConfig.ThemeIcons`) is used for theme-related settings. This needs to be defined elsewhere in your project.
-    * (Implicitly) CSS for styling the windows. The script references classes like `custom-window`, `popup-text`, etc.
-
-* **How to Use:**
-
-    ```html
-    <script src="https://jeffersoncgo.github.io/cdn/js/base.js"></script> <script>
-        var Config = { UserConfig: { ThemeIcons: true } }; // Example Config
-        var JCGWeb = JCGWeb || {}; JCGWeb.PID = { id: 0, get id() { return this.id++; } }; // Simplified PID for example
-    </script>
-    <script src="https://jeffersoncgo.github.io/cdn/js/windows.js"></script>
-    <script>
-        // Example 1: Create a simple custom window
-        const myWindow = JCGWeb.Windows.AddWindow(); // Creates a window with default settings
-        myWindow.title = "My First Window";
-        myWindow.icon = "<span>🌟</span>"; // Can be HTML string for an icon
-
-        const contentElement = document.createElement('p');
-        contentElement.textContent = "Hello from my custom window!";
-        myWindow._elements = [contentElement]; // Set content elements
-
-        myWindow.Create_Window(); // Renders the window structure
-        myWindow.Show(); // Shows the window (centered by default)
-
-        // Example 2: Create a confirmation popup
-        JCGWeb.Windows.CreatePopup(
-            "Confirm Action", // Title
-            "Are you sure you want to proceed?", // Text/HTML content
-            "<span>❓</span>", // Icon HTML
-            true, // Show default close button
-            "Proceed", // OK button text
-            (event) => { // OK callback
-                console.log("Proceed clicked!");
-                JCGWeb.Windows.CloseWindowByEvent(event); // Close the popup
-            },
-            "Cancel", // Cancel button text
-            (event) => { // Cancel callback
-                console.log("Cancel clicked!");
-                JCGWeb.Windows.CloseWindowByEvent(event); // Close the popup
-            }
-        );
-
-        // Example 3: Create an image viewer
-        // JCGWeb.Windows.CreateImageViewer('[https://your-cdn.com/https://jeffersoncgo.github.io/cdn/js/image.jpg](https://your-cdn.com/https://jeffersoncgo.github.io/cdn/js/image.jpg)');
-
-        // Note: For viewers (image, PDF, video, audio, text), ensure necessary helper functions
-        // like `MakeIconElement`, `FetchTextData`, `CreateMidiaElement` are correctly
-        // configured or paths (e.g., for icons) are valid.
-        // The provided script uses paths like "/fileexplorer/themes/..." for icons.
-    </script>
-    ```
-
-* **`Custom_Window` Constructor (Internal, usually via `JCGWeb.Windows.AddWindow()`):**
-    `new Custom_Window(id, width, height, top, left, parent, sizeable, title, buttons, elements, icon)`
-
-* **`JCGWeb.Windows` API Highlights:**
-    * `AddWindow()`: Creates and returns a new `Custom_Window` instance.
-    * `CreatePopup(Title, Text, Icon, CloseButton, OK_Text, OK_Callback, Cancel_Text, Cancel_Callback, CloseBtnFuncion)`: Versatile popup generator.
-    * `CreateMessagePopup1Btn(Icon, Text_HTML, Message_HTML, OkFunction)`: Creates a popup with one button.
-    * `CreateMessagePopup2Btn(Icon, Text_HTML, Message_HTML, OkFunction, CancelFunction)`: Creates a popup with two buttons.
-    * `CreateImageViewer(ImageUrl)`, `CreatePDFViewer(PDFUrl)`, `CreateVideoViewer(VideoUrl)`, `CreateAudioViewer(AudioUrl)`, `CreateTextViewer(TextUrl)`: Helpers to create media/file viewers.
-    * `GetWindowFromEvent(event)`, `GetWindowFromElement(element)`, `GetWindowFromID(id)`: Retrieve window instances.
-    * `CloseWindowByEvent(event)`, `CloseWindowByElement(element)`: Close windows.
-
-* **Important Notes:**
-    * The script relies on CSS classes for styling. You'll need to provide appropriate CSS definitions.
-    * Icon paths (e.g., `Config.UserConfig.ThemeIcons` and `JCGWeb.Windows.MakeIconElement`) might need adjustment based on your project structure.
-    * Functions like `saveAs` (used in `CreateTextViewer`) would require an external library like FileSaver.js.
-
----
-
-### 💬 `popupmessage.js`
-
-> **Displays temporary, dismissible popup messages (toasts/notifications) on the screen.**
-
-`popupmessage.js` provides a system for showing non-intrusive messages to the user. These messages appear for a set duration and can be dismissed manually.
-
-* **Key Features:**
-    * 💬 Displays messages with an optional title.
-    * ⏱️ Auto-dismisses after a configurable duration.
-    * 🖱️ Can be closed manually by clicking a close button.
-    * 🎣 Event triggers: `onMessage`, `onClose`, `onShow`, `onMessageClick`, `onTitleClick`.
-    * 🏢 Managed by `PopuMessageManager` which handles a queue of messages.
-    * 🎨 Requires accompanying CSS for styling (e.g., `styles.css` referenced by `utils.AddStyle`).
-
-* **Dependencies:**
-    * `utils.js` (for `utils.AddStyle` and `utils.CurrentUrlToFile`).
-    * A `PID` class/object for generating unique IDs (used as `PopuMessageManager.getId.id`). Assumed to be available, possibly from `base.js` (`JCGWeb.PID`).
-    * CSS file (e.g., `styles.css`) for styling.
-
-* **How to Use:**
-
-    ```html
-    <script src="https://jeffersoncgo.github.io/cdn/js/utils.js"></script> <script>
-        // Simplified PID for example if not using base.js
-        // var PID = function() { this.id_counter = 0; Object.defineProperty(this, 'id', { get: () => this.id_counter++ }); };
-        // var PopuMessageManager = { getId: new PID() }; // Ensure PopuMessageManager.getId is set before popupmessage.js if not using base.js
-    </script>
-    <script src="https://jeffersoncgo.github.io/cdn/js/popupmessage.js"></script>
-    <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/styles.css"> <script>
-        // Simple message
-        PopuMessageManager.addMessage('This is a notification!', 'System Update', 5000);
-
-        // Message with callbacks
-        PopuMessageManager.addMessage(
-            'Item saved successfully.',
-            'Success!',
-            3000,
-            (event) => console.log('Message container clicked:', event), // onMessage
-            (event) => console.log('Message closed:', event),          // onClose
-            (event) => console.log('Message shown:', event),           // onShow
-            (event) => console.log('Message body clicked:', event),    // onMessageClick
-            (event) => console.log('Message title clicked:', event)    // onTitleClick
-        );
-    </script>
-    ```
-
-* **`PopuMessageManager.addMessage` Parameters:**
-    `addMessage(message, title, durationMs, onMessage, onClose, onShow, onMessageClick, onTitleClick)`
-    * All callbacks are optional.
-
-* **Styling:**
-    The script creates a `#messageHolder` div in `document.body` and appends individual message boxes (`.messageBox`) to it. These elements, along with `.closeButton`, `.messageTitle`, and `.messageBody`, need to be styled via CSS.
-
----
-
-### 📊 `TableSorter.js`
-
-> **Adds client-side sorting functionality to HTML tables.**
-
-`TableSorter.js` enables users to sort HTML table rows by clicking on column headers. It supports different data types for sorting and provides visual feedback.
-
-* **Key Features:**
-    * 🖱️ Click table headers (`<th>`) to sort.
-    * ↕️ Supports ascending and descending sort orders.
-    * ⭐ Customizable sort functions for different data types (e.g., `Sorters.Default`, `Sorters.Date`, `Sorters.Number`).
-    * 🎨 Adds CSS classes (`collumnsorted`, `sorted_ascending`, `sorted_descending`) and icons ( `SortIcons.Desc`, `SortIcons.Asc`) for visual indication.
-    * ⚙️ Configurable on a per-table basis.
-    * 🦶 Optional footer support (`hasFooter`).
-    * ⚡ Observes table for changes to re-index if necessary.
-
-* **Dependencies:**
-    * `observer.js` (for monitoring table content changes).
-    * `base.js` (mentioned in comments, likely for global utilities or if `JCGWeb` namespace is used, though not directly apparent in the core sorting logic).
-    * CSS for styling sort icons and highlighted headers.
-
-* **How to Use:**
-
-    **HTML Structure:**
+*   **Input:** An HTML table element or its ID.
+*   **Code Snippet:**
     ```html
     <table id="mySortableTable">
         <thead>
             <tr>
-                <th sorttitle="Name">Full Name</th> <th sorttitle="Age" data-sorttype="Number">Age</th> <th sorttitle="JoinDate" data-sorttype="Date">Joined</th>
-                <th _sortignore>Actions</th> </tr>
+                <th>Name</th>
+                <th>Age</th>
+                <th>City</th>
+            </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>John Doe</td>
-                <td>30</td>
-                <td>2023-01-15</td>
-                <td>Edit</td>
-            </tr>
-            <tr>
-                <td>Jane Smith</td>
-                <td>25</td>
-                <td>2022-11-20</td>
-                <td>Edit</td>
-            </tr>
-            </tbody>
-        <tfoot>
-            <tr>
-                <th colspan="4">Table Footer</th>
-            </tr>
-        </tfoot>
+            <tr><td>Alice</td><td>30</td><td>New York</td></tr>
+            <tr><td>Bob</td><td>25</td><td>London</td></tr>
+            <tr><td>Charlie</td><td>35</td><td>Paris</td></tr>
+        </tbody>
     </table>
-    ```
-
-    **JavaScript:**
-    ```html
-    <script src="https://jeffersoncgo.github.io/cdn/js/observer.js"></script> <script src="https://jeffersoncgo.github.io/cdn/js/TableSorter.js"></script>
-    <script>
-        // Define custom sort functions if needed, or use provided Sorters
-        const customSortConfig = {
-            'Name': Sorters.Default, // Sorts alphabetically
-            'Age': Sorters.Number,   // Sorts numerically
-            'JoinDate': Sorters.Date, // Sorts by date
-            // 'Actions': () => 0 // Custom function to prevent sorting or define specific logic
-        };
-
-        // Initialize the sorter
-        const sorter = new TableSorter('mySortableTable', customSortConfig, true); // true for hasFooter
-
-        // To programmatically trigger a sort (e.g., after adding data):
-        // sorter.Sort('Name'); // Sorts by the 'Name' column
-    </script>
-    ```
-
-* **Constructor:**
-    `new TableSorter(TableId, SortConfig, hasFooter = false)`
-    * `TableId`: String ID of the HTML table or the table element itself.
-    * `SortConfig`: An object mapping `sorttitle` (or header text) to sort functions.
-        * Sort functions take `(x, y, IsDescending)` as arguments, where `x` and `y` are the cell (`<td>`) elements being compared. They should return -1, 0, or 1.
-    * `hasFooter`: Boolean, indicates if the table has a `<tfoot>`.
-
-* **`Sorters` Object:**
-    Provides predefined sort functions:
-    * `Sorters.Default(x, y, Descending)`: Default string/alphanumeric sort.
-    * `Sorters.Date(x, y, Descending)`: Parses cell content as dates for sorting.
-    * `Sorters.Number(x, y, Descending)`: Parses cell content as numbers for sorting.
-    Cells can have a `_sortValue` attribute to provide a specific value for sorting, otherwise `innerText` is used.
-
-* **Customization:**
-    * Use `_sortignore` attribute on `<th>` to make a column unsortable.
-    * Use `sorttitle` attribute on `<th>` if the desired key for `SortConfig` is different from the header's `innerText`.
-    * Provide your own sort functions in the `SortConfig`.
-
----
-
-### 🌳 `treelist.js`
-
-> **Creates a collapsible, tree-like list (directory tree view) from a JSON object or array.**
-
-`TreeListCreator` (available via `TreeListManager`) transforms a JavaScript object or array into an HTML structure using nested `<details>` and `<summary>` elements, allowing users to expand and collapse branches of the tree.
-
-* **Key Features:**
-    * 🌲 Generates an HTML tree view from JSON data.
-    * 🧼 Sanitizes keys in the input data by replacing `/` and `\` with `.` to handle path-like structures.
-    * 🧱 Automatically creates nested layers based on dot-separated keys.
-    * ↕️ Supports opening and closing all nodes (`OpenAll()`, `CloseAll()`).
-    * 🎨 Requires accompanying CSS for styling (e.g., `styles.css` referenced by `utils.AddStyle`).
-
-* **Dependencies:**
-    * `utils.js` (for `utils.AddStyle` and `utils.CurrentUrlToFile`).
-    * CSS file (e.g., `styles.css`) for styling the tree.
-
-* **How to Use:**
-
-    ```html
-    <script src="https://jeffersoncgo.github.io/cdn/js/utils.js"></script> <script src="https://jeffersoncgo.github.io/cdn/js/treelist.js"></script>
-    <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/styles.css"> <div id="treeContainer"></div>
-
-    <button onclick="TreeListManager.OpenAll()">Open All</button>
-    <button onclick="TreeListManager.CloseAll()">Close All</button>
 
     <script>
-        const jsonData = {
-            "folder1": {
-                "file1.txt": "Content of file1",
-                "subfolder1.1": {
-                    "file1.1.1.doc": "Document content"
-                }
-            },
-            "folder2/file2.js": "JavaScript code", // Path-like key
-            "arrayData": [
-                { "Key": "Item 1", "value": "Details for item 1" },
-                "Simple Item 2"
-            ]
-        };
-
-        // Get the TreeListManager instance (it's a global singleton)
-        // TreeListManager is an instance of TreeListCreator
-
-        TreeListManager.Sanitize = true; // Default, sanitizes keys
-        TreeListManager.Opened = false; // Default, determines if new nodes are initially open
-
-        async function displayTree() {
-            const treeHtml = await TreeListManager.TreeHTML(jsonData);
-            document.getElementById('treeContainer').innerHTML = treeHtml;
-
-            // The TreeListManager.document property holds the root div of the generated tree
-            // If you want to append it instead of using innerHTML:
-            // TreeListManager.TreeHTML(jsonData).then(() => {
-            //    document.getElementById('treeContainer').appendChild(TreeListManager.document);
-            // });
+    document.addEventListener('DOMContentLoaded', () => {
+        const table = document.getElementById('mySortableTable');
+        // Assuming TableSorter is available globally or via JCGWeb
+        if (typeof TableSorter !== 'undefined') {
+            new TableSorter(table); // Initialize the sorter
+        } else {
+            console.error('TableSorter not loaded.');
         }
-
-        displayTree();
+    });
     </script>
     ```
+*   **Output:** The table headers become clickable. Clicking a header sorts the table rows based on that column's data.
+*   **Explanation:** The `TableSorter` constructor takes the table element and attaches click event listeners to the `<thead>` cells, triggering the sorting logic.
 
-* **`TreeListManager` (instance of `TreeListCreator`):**
-    * `Sanitize`: Boolean (default `true`). If true, keys like "a/b" or "a\\b" are treated as "a.b" for nesting.
-    * `Opened`: Boolean (default `false`). If true, all `<details>` elements will be initially open.
-    * `async TreeHTML(Json)`: Generates the HTML for the tree from the `Json` data and returns it as a string. It also populates `this.document` with the root `div` element of the tree.
-    * `MakeTree(Json)`: Processes the input `Json` (sanitizes if `Sanitize` is true) and stores it in `this.Tree`.
-    * `OpenAll()`: Opens all `<details>` elements in the generated tree.
-    * `CloseAll()`: Closes all `<details>` elements.
+### 💬 Component: PopupMessage (`popupmessage.js`, `popupmessage.css`)
 
-* **Styling:**
-    The generated HTML uses `<details>`, `<summary>`, and `<li>` elements. You'll need CSS to style them appropriately for a tree view.
+*   **Description:** Provides functionality to display temporary, non-intrusive popup messages (like toasts or notifications) on the screen to provide feedback to the user. It includes associated CSS for styling the messages.
+*   **Key Features:**
+    *   Display transient messages.
+    *   Customizable message content.
+    *   Timed auto-dismissal.
+    *   Associated CSS for visual styling.
+*   **Dependencies:** Requires `popupmessage.css` for styling and potentially core DOM manipulation utilities.
 
----
+#### How to Use / API Highlights / Examples:
 
-### 🎨 `themeControl.js`
+Usage likely involves a function call to trigger a message.
 
-> **Provides a UI and logic for dynamically changing website themes, including color shifting, inversion, and saving/loading custom themes via `localStorage`.**
+**Example 1: Displaying a Success Message**
 
-`themeControl.js` adds a floating control panel to the webpage, allowing users to manipulate the color schemes of CSS rules and inline styles in real-time.
+This example shows how to display a simple success notification.
 
-* **Key Features:**
-    * 🖌️ **Theme Control Panel:** Adds a button to toggle a control panel.
-    * 🔄 **Color Shifting:** A slider allows shifting color components (e.g., hue) by an angle (0-256).
-    * 🌓 **Color Inversion:** A button to invert all detected colors on the page.
-    * 💾 **Save Themes:** Users can name and save the current color state as a theme to `localStorage`.
-    * 📂 **Load Themes:** A dropdown lists saved themes, allowing users to switch between them.
-    * 🗑️ **Delete Themes:** Remove saved themes.
-    * 🎯 **Selector Targeting:** (Optional) Apply changes only to elements matching a specific CSS selector chosen from a dropdown, or to all elements ('Auto').
-    * 🛠️ **Color Utilities:** Includes internal functions for color conversion (RGB to Hex, HSL to RGB, Hex to RGB) and manipulation.
+*   **Input:** Message text, potentially message type (success, error, info), and duration.
+*   **Code Snippet:**
+    ```javascript
+    // Assuming a function like JCGWeb.PopupMessage.show exists
+    function showSuccess() {
+        JCGWeb.PopupMessage.show('Operation completed successfully!', 'success', 3000); // Text, Type, Duration in ms
+    }
 
-* **Dependencies:**
-    * `utils.js` (for `utils.AddStyle` and `utils.CurrentUrlToFile`).
-    * `controller.js` (for debouncing the `shiftTheme` function via `themeSliderControl`).
-    * `themeControl.css` (for styling the control panel and its elements).
-
-* **How to Use:**
-    1.  Include `utils.js`, `controller.js`, and `themeControl.js` in your HTML.
-    2.  Ensure `themeControl.css` is available at the same path as `themeControl.js` or provide the correct path.
-    3.  A "brush" icon button will appear on the page. Clicking it opens the theme control panel.
-
-    ```html
-    <script src="https://jeffersoncgo.github.io/cdn/js/utils.js"></script>       <script src="https://jeffersoncgo.github.io/cdn/js/controller.js"></script> <script src="https://jeffersoncgo.github.io/cdn/js/themeControl.js"></script>
-    <script>
-        // The script initializes itself automatically.
-        // A theme control button (brush icon) will be added to the page.
-        // Clicking this button shows/hides the theme control panel.
-
-        // Interaction is done through the UI panel:
-        // - Use the slider to shift colors.
-        // - Click "Invert Colors" to invert.
-        // - Save current colors as a new theme.
-        // - Select a saved theme from the dropdown to apply it.
-        // - Delete unwanted themes.
-        // - Optionally, target specific CSS rules using the selector dropdown.
-    </script>
+    // Call this function on button click or after an action
+    // <button onclick="showSuccess()">Show Success</button>
     ```
+*   **Output:** A small popup message appears on the screen with the text "Operation completed successfully!" and fades away after 3 seconds.
+*   **Explanation:** The `show` function likely creates a message element, adds it to the DOM, applies appropriate styling based on the type, and uses `setTimeout` to remove it after the specified duration.
 
-* **Key Functions & Global Variables:**
-    * `themeSliderControl`: An instance of `Controller` wrapping `shiftTheme`.
-    * `themeCtrl_Themes`: Object storing loaded/saved themes.
-    * `fixColorAngle(angle)`: Normalizes a color component angle.
-    * `isColorValue(value)`: Checks if a string is a CSS color value.
-    * `rgbToHex()`, `rgbaToHex()`, `componentToHex()`, `isValidHex()`: Color conversion utilities.
-    * `invertColor(color)`, `invertHexColor(color)`: Inverts a given color.
-    * `shiftColor(color, angle)`: Shifts a color by a given angle.
-    * `invertTheme()`: Applies color inversion to all relevant CSS rules.
-    * `shiftTheme(angle)`: Applies color shifting to relevant CSS rules.
-    * `getCSSRulesWithColors()`: Scans stylesheets and inline styles for rules containing color properties.
-    * `themeCtrl_saveTheme()`: Prompts for a theme name and saves current colors.
-    * `themeCtrl_deleteTheme()`: Deletes the selected theme from `localStorage`.
-    * `themeCtrl_loadTheme()`: Loads the last used theme from `localStorage` on page load.
-    * `themeCtrl_setTheme(themeName)`: Applies a saved theme.
-    * `createThemeControlButton()`: Creates the initial brush icon button.
-    * `showThemeControl()`: Builds and displays the theme control panel UI.
+### 🎨 Component: ThemeControl (`themeControl.js`, `themeControl.css`)
 
-* **Styling:**
-    The script dynamically creates UI elements with IDs like `#theme-control-button`, `#theme-spacer`, `#theme-control`, `#theme-css-selector`, `#theme-slider`, `#theme-list`, etc. These require styling from `themeControl.css`.
+*   **Description:** Enables dynamic control over the visual theme of a web page. It allows applying different color schemes or styles and includes functionality to save the user's preferred theme using `localStorage` so it persists across sessions.
+*   **Key Features:**
+    *   Apply predefined or custom themes.
+    *   Dynamically change page styles (likely via CSS variables or class names).
+    *   Save the currently active theme to `localStorage`.
+    *   Load the saved theme on page load.
+    *   Associated CSS for defining themes or variables.
+*   **Dependencies:** Requires `themeControl.css` and relies on `localStorage` browser API.
 
-* **Important Notes:**
-    * The script attempts to modify CSS rules directly. This might have limitations with cross-origin stylesheets or very complex CSS setups.
-    * Performance for `getCSSRulesWithColors()` and applying changes can vary depending on the number of stylesheets and elements on the page.
-    * The `makeQueryPathUntilBody` function for inline styles generates selectors that might not always be perfectly unique or efficient but aims to provide a reasonable target.
+#### How to Use / API Highlights / Examples:
 
----
+Usage involves initializing the theme control and calling functions to apply or save themes.
 
-## 💾 Data & State Management
+**Example 1: Applying a Theme**
 
-Scripts for handling data structures and persisting application state.
+This example shows how to switch the page's theme programmatically.
 
-### 📦 `object.js`
+*   **Input:** A theme identifier (e.g., a string name).
+*   **Code Snippet:**
+    ```javascript
+    // Assuming JCGWeb.ThemeControl exists and is initialized
+    function applyDarkTheme() {
+        JCGWeb.ThemeControl.setTheme('dark'); // Apply the theme named 'dark'
+    }
 
-> **A collection of utility functions for working with JavaScript objects.**
+    function applyLightTheme() {
+        JCGWeb.ThemeControl.setTheme('light'); // Apply the theme named 'light'
+    }
 
-This script provides standalone functions for common object manipulation tasks such as accessing nested properties, creating objects from paths, cleaning objects, and merging them.
+    // Call these functions via UI elements like buttons or dropdowns
+    // <button onclick="applyDarkTheme()">Dark Mode</button>
+    ```
+*   **Output:** The page's visual style changes according to the 'dark' or 'light' theme defined in the CSS and managed by the `themeControl.js`.
+*   **Explanation:** The `setTheme` function likely adds a class to the `<body>` or `<html>` element (e.g., `theme-dark`) which CSS rules then target to apply specific styles or variable values.
 
-* **Key Features & Functions:**
-    * `GetValueFromPath(path, obj)`: Retrieves a value from a nested object property using a dot-separated path string.
-        * Example: `GetValueFromPath('user.address.city', myObj)`
-    * `MakeObjFromPath(path, value, obj, spliter = '.')`: Creates or updates a nested property in an object based on a path string.
-        * Example: `MakeObjFromPath('config.settings.theme', 'dark', myAppConfig)`
-    * `cleanObject(obj)`: Recursively removes properties from an object that are `null`, `undefined`, empty strings, empty arrays, or empty plain objects.
-    * `mergeObjects(obj1, obj2)`: Recursively merges properties from `obj2` into `obj1`. If `obj1` doesn't have a property, it's added. If both have an object at the same key, they are merged. Otherwise, `obj2`'s value overwrites `obj1`'s.
+**Example 2: Saving and Loading Theme Preference**
 
-* **Dependencies:** None.
+This example demonstrates how the theme preference is saved and automatically loaded.
 
-* **How to Use:**
-    Include the script and call the functions directly.
+*   **Input:** No direct input for loading; saving takes the current theme.
+*   **Code Snippet:**
+    ```javascript
+    // In themeControl.js or initialization script:
+    document.addEventListener('DOMContentLoaded', () => {
+        JCGWeb.ThemeControl.loadSavedTheme(); // Attempt to load theme from localStorage
 
+        // Assuming a UI element triggers saving
+        document.getElementById('saveThemeButton').addEventListener('click', () => {
+            JCGWeb.ThemeControl.saveCurrentTheme(); // Save the theme currently applied
+            JCGWeb.PopupMessage.show('Theme preference saved.', 'info', 2000);
+        });
+    });
+    ```
+*   **Output:** On page load, the last saved theme is applied. Clicking the save button stores the current theme choice in `localStorage`.
+*   **Explanation:** The `loadSavedTheme` function checks `localStorage` for a saved theme preference key and applies the corresponding theme using `setTheme`. `saveCurrentTheme` reads the active theme and stores it in `localStorage`.
+
+### 🌳 Component: TreeList (`treelist.js`, `treelist.css`)
+
+*   **Description:** A component for rendering hierarchical data as an interactive, collapsible tree structure within an HTML element. It allows users to expand and collapse nodes to navigate through nested data.
+*   **Key Features:**
+    *   Render hierarchical data visually.
+    *   Expand and collapse tree nodes.
+    *   Support for nested data structures.
+    *   Associated CSS for tree node styling and icons.
+*   **Dependencies:** Requires `treelist.css` and likely core DOM manipulation utilities.
+
+#### How to Use / API Highlights / Examples:
+
+Usage involves providing hierarchical data (e.g., an array of objects with nested children) and initializing the tree component on a target element.
+
+**Example 1: Rendering a Simple Tree**
+
+This example shows how to display a basic tree structure.
+
+*   **Input:** A target HTML element and an array representing the tree data.
+*   **Code Snippet:**
     ```html
-    <script src="https://jeffersoncgo.github.io/cdn/js/object.js"></script>
+    <div id="myTreeContainer"></div>
+
     <script>
-        let user = {
-            name: "John Doe",
-            details: {
-                age: 30,
-                address: null // Will be removed by cleanObject
+    document.addEventListener('DOMContentLoaded', () => {
+        const treeData = [
+            {
+                id: 'node1',
+                text: 'Parent Node 1',
+                children: [
+                    { id: 'node1_1', text: 'Child Node 1.1' },
+                    { id: 'node1_2', text: 'Child Node 1.2' }
+                ]
             },
-            preferences: {} // Will be removed by cleanObject
-        };
+            {
+                id: 'node2',
+                text: 'Parent Node 2',
+                children: [
+                    { id: 'node2_1', text: 'Child Node 2.1' }
+                ]
+            }
+        ];
 
-        // Get a nested value
-        console.log(GetValueFromPath('details.age', user)); // 30
+        const container = document.getElementById('myTreeContainer');
 
-        // Create/update a nested property
-        MakeObjFromPath('details.contact.email', 'john.doe@example.com', user);
-        console.log(user.details.contact.email); // john.doe@example.com
-
-        // Clean the object
-        let cleanedUser = cleanObject(JSON.parse(JSON.stringify(user))); // Deep clone before cleaning to see effect
-        console.log(cleanedUser);
-        // Output: { name: "John Doe", details: { age: 30, contact: { email: "john.doe@example.com" } } }
-
-
-        // Merge objects
-        let defaults = { settingA: true, settingB: "default", nested: { item1: 1 } };
-        let overrides = { settingB: "custom", settingC: 123, nested: { item2: 2 } };
-        let merged = mergeObjects(defaults, overrides);
-        console.log(merged);
-        // Output: { settingA: true, settingB: "custom", settingC: 123, nested: { item1: 1, item2: 2 } }
-    </script>
-    ```
-
----
-
-### 🧠 `pagememory.js`
-
-> **Persists and restores the state of specified DOM elements across page loads using `localStorage`.**
-
-`pageMemory` helps in remembering user inputs, element attributes, or other dynamic states on a page. Elements marked with a `save` attribute will have their relevant properties stored and reapplied when the user revisits the page.
-
-* **Key Features:**
-    * 💾 Saves state of elements with the `save` attribute to `localStorage`.
-    * 🔄 Restores element state (attributes, values like `checked`, `value`, `selectedIndex`, `open`) on page load if saved data exists for the current URL.
-    * 🎯 Identifies elements using unique CSS selectors.
-    * 🔍 Ignores certain common attributes (e.g., `id`, `class`, `style`, `data-*`, `aria-*`) during save/restore to prevent conflicts, but saves others.
-    * ⚡ Uses `Observer` to monitor changes in "saveable" elements and trigger saves.
-    * ⏳ Uses `Controller` to debounce save operations for efficiency.
-    * ⚙️ Supports custom triggers (`customTrigger` attribute on elements) that call a global function after an element is restored. The restored element is passed as parameter.
-    * ⏱️ (Deprecated) Auto-save functionality at a configurable interval (though `startAutoSave` is commented out in `init`). It now uses Observer to observer changes for efficiency.
-
-* **Dependencies:**
-    * `observer.js`
-    * `controller.js`
-    * `base.js` (specifically `JCGWeb.Functions.getUniqueSelector`).
-
-* **How to Use:**
-
-    **HTML:**
-    Mark elements you want to save with the `save` attribute.
-    ```html
-    <input type="text" id="username" save>
-    <input type="checkbox" id="rememberMe" save>
-    <select id="themeSelector" save>
-        <option value="light">Light</option>
-        <option value="dark">Dark</option>
-    </select>
-    <details id="advancedSettings" save>
-        <summary>Advanced Settings</summary>
-        <p>Some advanced content here.</p>
-    </details>
-
-    <input type="text" id="specialInput" save customTrigger="handleSpecialInputRestored">
-    ```
-
-    **JavaScript:**
-    ```html
-    <script src="https://jeffersoncgo.github.io/cdn/js/base.js"></script>       <script src="https://jeffersoncgo.github.io/cdn/js/observer.js"></script>   <script src="https://jeffersoncgo.github.io/cdn/js/controller.js"></script> <script src="https://jeffersoncgo.github.io/cdn/js/pagememory.js"></script>
-    <script>
-        // Define any custom trigger functions globally if used
-        window.handleSpecialInputRestored = function(element) {
-            console.log(element.id + ' was restored, applying custom logic.');
-            // e.g., element.style.borderColor = 'green';
+        // Assuming JCGWeb.TreeList exists and has a render method
+        if (typeof JCGWeb.TreeList !== 'undefined') {
+             JCGWeb.TreeList.render(container, treeData); // Render the tree
+        } else {
+            console.error('TreeList component not loaded.');
         }
-
-        // Initialize pageMemory
-        const memory = new pageMemory();
-
-        // The script automatically initializes, restores saved info, and starts observing.
-
-        // To manually save (though it's mostly automatic on interaction):
-        // memory.savePageInfo();
-
-        // To clear all saved data for this page and stop observation:
-        // memory.destroy();
-
-        // To clear only the localStorage data:
-        // memory.clearSavedMemory();
+    });
     </script>
     ```
+*   **Output:** An interactive tree structure is rendered inside the `myTreeContainer` div, with "Parent Node 1" and "Parent Node 2" initially visible and collapsible/expandable.
+*   **Explanation:** The `render` function takes the container element and the data array, then recursively builds the HTML structure for the tree, attaching event listeners for expand/collapse actions.
 
-* **Constructor:**
-    `new pageMemory()`
-    * No arguments needed for default behavior.
+## 🔧 Configuration
 
-* **How it Works:**
-    1.  On instantiation, `pageMemory` attempts to restore data from `localStorage` if the URL matches.
-    2.  It identifies elements with the `save` attribute.
-    3.  For each such element, it determines the relevant event for triggering saves (e.g., `input` for text fields, `change` for checkboxes/selects, `toggle` for `<details>`).
-    4.  An `Observer` is attached to each "saveable" element to detect changes (mutations or specified events).
-    5.  When a change occurs, `savePageInfo()` is called (debounced by `Controller`) to update `localStorage`.
-    6.  `getElementInfo` captures attributes (excluding those in `attributesToIgnore`) and relevant properties (like `value`, `checked`, `open`, `selectedIndex`).
+Client-side configuration is primarily handled through the initialization of components and the use of browser `localStorage` for persistence.
 
-* **Key Methods (mostly for internal use or advanced control):**
-    * `savePageInfo()`: Saves current state.
-    * `restorePageInfo()`: Restores state from localStorage.
-    * `getElementsToSave()`: Returns an array of info about elements marked with `save`.
-    * `setOriginalPageInfo()` / `getOriginalPageInfo()`
-    * `setPreviousPageInfo()` / `getPreviousPageInfo()`
-    * `clearPreviousPageInfo()` / `clearOriginalPageInfo()` / `clearSavedMemory()`
-    * `cleanMemory()`: Stops auto-save and clears all internal and localStorage data.
-    * `reset()`: Resets observers and cleans memory.
-    * `destroy()`: Full cleanup, removes event listeners, intervals, and attempts to delete instance properties.
-    * `startAutoSave()` / `stopAutoSave()` / `setAutoSaveDelay(delay)`: Manage auto-save behavior (if enabled).
+*   **Theme Persistence:** The `themeControl.js` component saves the active theme name to `localStorage` under a specific key. Users can change themes via UI elements, and the preference is automatically saved and loaded on subsequent visits. The key used for storage is internal to the component.
+*   **Page Memory:** The `pagememory.js` utility saves the state of elements (like input values) to `localStorage`, using keys derived from element IDs or `data-memory-key` attributes. This provides a simple, element-specific state persistence mechanism.
 
----
+There are no external configuration files (like `.env` or `.json` configs) processed by the client-side code itself; the `dummy/` files are data sources, not configuration.
 
-## 📄 License
+## 🔒 Security & Safety Highlights
 
-This collection of scripts is released under the **MIT License**. Feel free to use, adapt, and distribute them as per the license terms.
+This library is designed for client-side execution within the user's browser.
 
-```
+*   **No Server Interaction Required:** The core functionalities operate purely in the browser environment, minimizing reliance on external servers beyond serving the initial files.
+*   **No Sensitive Data Handling:** The components primarily handle UI state and presentation logic. There is no inherent functionality for processing sensitive user credentials or private data.
+*   **Local Storage Usage:** Theme preferences and page memory use `localStorage`, which is isolated to the user's browser and the specific domain. While convenient for persistence, developers should be mindful that `localStorage` is not encrypted and should not be used for highly sensitive information.
+*   **DOM Manipulation:** Standard DOM manipulation techniques are used. Care should be taken when using these utilities with user-provided content to prevent potential Cross-Site Scripting (XSS) vulnerabilities, though the utilities themselves do not introduce new inherent risks beyond the standard browser environment.
+
+The project emphasizes safe operation within the browser sandbox, focusing on enhancing user interface functionality without requiring elevated permissions or handling sensitive data externally.
+
+## 🚧 Limitations and Edge Cases
+
+*   **Client-Side Only:** All functionality runs in the user's browser. This is not suitable for server-side tasks, complex data processing, or operations requiring access to server-side resources.
+*   **Browser Compatibility:** While basic DOM manipulation is broadly compatible, specific features (like `localStorage`) might have minor variations or require polyfills for very old browsers. Modern browsers are assumed.
+*   **Performance:** Manipulating large tables or deeply nested trees client-side can impact performance, especially on less powerful devices.
+*   **No Formal Package Management:** The files are intended for direct inclusion via `<script>` and `<link>` tags. There are no build steps or package manager configurations (`npm`, `yarn`, etc.) included in this repository structure, which might limit integration into larger, module-based front-end projects without manual effort.
+*   **State Persistence Limits:** `localStorage` is limited in capacity and intended for relatively small amounts of data. `pagememory` is best suited for simple state like input values, not complex application state.
+
+## 🤝 Contributing
+
+This project is open source under the MIT License. Contributions are welcome!
+
+If you wish to contribute:
+
+1.  Fork the repository.
+2.  Create a new branch for your feature or bugfix.
+3.  Make your changes, adhering to the existing code style.
+4.  Test your changes thoroughly.
+5.  Submit a pull request detailing the changes you have made.
+
+## 📜 License
+
 MIT License
 
-Copyright (c) 2025 Jeffersoncgo
+Copyright (c) 2025 jeffersoncgo
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -835,12 +457,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-```
-
----
 
 ## 🚧 Work in Progress
 
-This CDN and its scripts are actively being developed. More utilities, features, and improvements (including CSS styles) may be added over time. Your feedback and contributions are welcome!
-
----
+This repository and its documentation are under active development. Features and structure may change.
