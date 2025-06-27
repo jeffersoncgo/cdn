@@ -10,6 +10,30 @@ String.prototype.firstUpCase = function () {
   return this.charAt(0).toUpperCase() + this.slice(1);
 };
 
+Array.prototype.sortInsensitive = function () {
+  return this.slice().sort((a, b) => {
+    a = String(a).toLowerCase();
+    b = String(b).toLowerCase();
+    if (a < b) return -1;
+    if (a > b) return 1;
+    return 0;
+  });
+};
+
+Array.prototype.eachWordUp = function () {
+  return this.map(item => {
+    if (typeof item !== 'string') return item;
+    return item.eachWordUp();
+  });
+};
+
+Array.prototype.firstUpCase = function () {
+  return this.map(item => {
+    if (typeof item !== 'string' || item.length === 0) return item;
+    return item.firstUpCase();
+  });
+};
+
 
 
 
