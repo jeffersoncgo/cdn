@@ -1,3 +1,20 @@
+String.prototype.eachWordUp = function () {
+  let string = this;
+  if (typeof string !== 'string') return string;
+  return string
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+String.prototype.firstUpCase = function () {
+  let string = this;
+  if (typeof string !== 'string') return string;
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+
 
 
 class utils {

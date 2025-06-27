@@ -123,6 +123,21 @@ function ArraySort(array = [], ignoreCase = false) {
   });
 }
 
+function ArrayCaseEachWord(arr) {
+  return arr.map(str => {
+    if (typeof str !== 'string') return str;
+    return str.eachWordUp();
+  });
+}
+
+function ArrayNormalize(arr) {
+  return arr.map(item => {
+    if (typeof item !== 'string' || item.length === 0) return item;
+    return item.firstUpCase()
+  });
+}
+
+
 JCGWeb.Functions.addEvent = function (event = "onDone", callback) {
   this.events[event].push(callback);
 }
@@ -156,4 +171,7 @@ if (typeof module != 'undefined') module.exports = {
   flattenKeys,
   flattenValues,
   searchInArray,
+  ArraySort,
+  ArrayCaseEachWord,
+  ArrayNormalize,
 };
