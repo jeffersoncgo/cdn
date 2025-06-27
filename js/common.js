@@ -34,6 +34,23 @@ Array.prototype.firstUpCase = function () {
   });
 };
 
+Array.prototype.toCase = function (useLowerCase = false) {
+  const fn = useLowerCase ? String.prototype.toLowerCase : String.prototype.toUpperCase;
+  return this.map(item => {
+    if (typeof item !== 'string') return item;
+    return fn.call(item);
+  });
+  
+}  
+{
+Array.prototype.toLowerCase = function () {
+  return this.toCase(true)
+};
+
+Array.prototype.toUpperCase = function () {
+  return this.toCase(false)
+};
+
 
 
 
