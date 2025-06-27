@@ -42,7 +42,7 @@ Array.prototype.toCase = function (useLowerCase = false) {
   });
   
 }  
-{
+
 Array.prototype.toLowerCase = function () {
   return this.toCase(true)
 };
