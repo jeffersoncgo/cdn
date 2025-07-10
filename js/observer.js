@@ -15,7 +15,7 @@ class Observer {
       'focus',
       'blur',
       'load',
-      'unload',
+      // 'unload', //Disabled because of security browser bugs
       'DOMContentLoaded',
       'readystatechange',
       'oncontextmenu',
