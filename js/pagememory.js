@@ -32,7 +32,7 @@ class pageMemory {
             'input',
             'change',
             'load',
-            'unload',
+            // 'unload', //Removed because of browser security errors
             'DOMContentLoaded',
             'readystatechange',
             'onresize',
