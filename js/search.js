@@ -210,21 +210,37 @@ class SearchEngine {
       });
     }
 
+    // const filterNotEqual = (data, query) => {
+    //   return data.filter((item) => {
+    //     const idx = dataArray.indexOf(item);
+    //     const flat = flattened[idx];
+    //     const queryValue = parseFloat(query.queries[0]);
+    //     const fields = query.fields ?? [];
+
+    //     return flat.some(({ path, value }) => {
+    //       const fieldValue = parseFloat(value);
+    //       return !isNaN(fieldValue) &&
+    //         (!fields.length || fields.some(f => path.startsWith(f))) &&
+    //         fieldValue !== queryValue;
+    //     });
+    //   });
+    // }
+
     const filterNotEqual = (data, query) => {
+      const queryValues = new Set(query.queries.map(v => String(v).toLowerCase())); // Normalize once
+      const fields = query.fields ?? [];
+
       return data.filter((item) => {
         const idx = dataArray.indexOf(item);
         const flat = flattened[idx];
-        const queryValue = parseFloat(query.queries[0]);
-        const fields = query.fields ?? [];
 
         return flat.some(({ path, value }) => {
-          const fieldValue = parseFloat(value);
-          return !isNaN(fieldValue) &&
-            (!fields.length || fields.some(f => path.startsWith(f))) &&
-            fieldValue !== queryValue;
+          const normalizedValue = String(value).toLowerCase();
+          const fieldMatch = !fields.length || fields.some(f => path.startsWith(f));
+          return fieldMatch && !queryValues.has(normalizedValue);
         });
       });
-    }
+    };
 
     const filterBetween = (data, query) => {
       return data.filter((item) => {
