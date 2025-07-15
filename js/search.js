@@ -158,4 +158,4 @@ class SearchEngine {
 }
 
 if (typeof module != 'undefined') module.exports = SearchEngine;
-else window.Search = new SearchEngine();
+else window.search = new SearchEngine();
