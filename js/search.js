@@ -39,24 +39,82 @@ class SearchEngine {
     return this._searchCache.get(dataArray).flattened;
   }
 
-  search(dataArray, queryOrQueries, fallbackFields = null) {
+  search(dataArray, queryOrQueries, sort) {
     const flattened = this.getFlattenedCache(dataArray);
     const cache = this._searchCache.get(dataArray);
 
     const isComplex = Array.isArray(queryOrQueries) && typeof queryOrQueries[0] === 'object';
-    const cacheKey = JSON.stringify({ query: queryOrQueries, fields: fallbackFields });
+    const cacheKey = JSON.stringify({ queryOrQueries, sort });
 
     if (cache.results.has(cacheKey)) {
       return cache.results.get(cacheKey);
     }
 
-    const results = isComplex
+    let results = isComplex
       ? this.searchComplex(flattened, dataArray, queryOrQueries)
-      : this.searchSimple(flattened, dataArray, queryOrQueries.toLowerCase(), fallbackFields);
+      : this.searchSimple(flattened, dataArray, queryOrQueries.toLowerCase(), null);
+
+    if (sort) {
+      results = this.sort(results, sort);
+    }
 
     cache.results.set(cacheKey, results);
     return results;
   }
+
+
+
+  sort(results, sort) {
+    const getComparableValue = (val) => {
+      if (val instanceof Date) return val.getTime();
+      if (typeof val === 'string' || typeof val === 'number') return val;
+      return val !== null && val !== undefined ? String(val) : null;
+    };
+
+    const compareValues = (aVal, bVal, order) => {
+      if (aVal === bVal) return 0;
+      if (aVal === null) return 1;
+      if (bVal === null) return -1;
+
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return order * aVal.localeCompare(bVal);
+      }
+      return order * ((aVal > bVal) ? 1 : -1);
+    };
+
+    results.sort((a, b) => {
+      for (const s of sort) {
+        const aVal = getComparableValue(this.getFieldValue(a, s.fields));
+        const bVal = getComparableValue(this.getFieldValue(b, s.fields));
+        const order = s.type === 'desc' ? -1 : 1;
+
+        const cmp = compareValues(aVal, bVal, order);
+        if (cmp !== 0) return cmp;
+      }
+      return 0;
+    });
+
+    return results;
+  }
+
+  getFieldValue(obj, fields) {
+    for (const field of fields) {
+      let value = obj;
+      const path = field.split('.');
+      for (const p of path) {
+        if (value === undefined || value === null) {
+          value = undefined;
+          break;
+        }
+        value = value[p];
+      }
+      if (value !== undefined) {
+        return value;
+      }
+    }
+    return undefined;
+  }
+
 
   searchSimple(flattened, dataArray, normalizedQuery, fields) {
     return dataArray.filter((_, index) => {
