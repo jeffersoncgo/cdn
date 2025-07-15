@@ -77,6 +77,8 @@ class SearchEngine {
 
     const allFilters = queryGroups.filter(q => q.match === 'all');
     const anyFilters = queryGroups.filter(q => q.match === 'any');
+    const biggerFilters = queryGroups.filter(q => q.match === 'bigger');
+    const smallerFilters = queryGroups.filter(q => q.match === 'smaller');
 
     const passedAll = dataArray.filter((_, idx) => {
       const flat = flattened[idx];
@@ -98,9 +100,43 @@ class SearchEngine {
       return true;
     });
 
-    if (!anyFilters.length) return passedAll;
+    const passedAllAndBigger = passedAll.filter((_, idx) => {
+      const flat = flattened[idx];
 
-    return passedAll.filter(item => {
+      for (const group of biggerFilters) {
+        const queryValue = parseFloat(group.queries[0]);
+        const fields = group.fields ?? [];
+
+        const groupPasses = flat.some(({ path, value }) => {
+          const fieldValue = parseFloat(value);
+          return (!fields.length || fields.includes(path)) && fieldValue > queryValue;
+        });
+
+        if (!groupPasses) return false;
+      }
+      return true;
+    });
+
+    const passedAllAndBiggerAndSmaller = passedAllAndBigger.filter((_, idx) => {
+      const flat = flattened[idx];
+
+      for (const group of smallerFilters) {
+        const queryValue = parseFloat(group.queries[0]);
+        const fields = group.fields ?? [];
+
+        const groupPasses = flat.some(({ path, value }) => {
+          const fieldValue = parseFloat(value);
+          return (!fields.length || fields.includes(path)) && fieldValue < queryValue;
+        });
+
+        if (!groupPasses) return false;
+      }
+      return true;
+    });
+
+    if (!anyFilters.length) return passedAllAndBiggerAndSmaller;
+
+    return passedAllAndBiggerAndSmaller.filter(item => {
       const idx = dataArray.indexOf(item);
       const flat = flattened[idx];
 
@@ -108,20 +144,18 @@ class SearchEngine {
         const queries = group.queries.map(lower);
         const fields = group.fields ?? [];
 
-        return group.match === 'all'
-          ? queries.every(q =>
-              flat.some(({ path, value }) =>
-                (!fields.length || fields.includes(path)) &&
-                value.toLowerCase().includes(q)
-              )
-            )
-          : queries.some(q =>
-              flat.some(({ path, value }) =>
-                (!fields.length || fields.includes(path)) &&
-                value.toLowerCase().includes(q)
-              )
-            );
+        return queries.some(q =>
+          flat.some(({ path, value }) =>
+            (!fields.length || fields.includes(path)) &&
+            value.toLowerCase().includes(q)
+          )
+        );
       });
     });
   }
+
+  
 }
+
+if (typeof module != 'undefined') module.exports = SearchEngine;
+else window.Search = new SearchEngine();
