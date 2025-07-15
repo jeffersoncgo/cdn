@@ -193,7 +193,7 @@ class SearchEngine {
         '!=': 2,
         '>': 3,
         '<': 4,
-        '<>': 5,
+        '..': 5,
         'any': 6
       };
       return order[a.operator] - order[b.operator];
@@ -206,7 +206,7 @@ class SearchEngine {
       '<': filterSmaller,
       '=': filterEqual,
       '!=': filterNotEqual,
-      '<>': filterBetween
+      '..': filterBetween
     };
 
     let filtered = dataArray;
