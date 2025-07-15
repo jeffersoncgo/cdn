@@ -3,7 +3,6 @@ class SearchEngine {
     this._searchCache = new WeakMap();
   }
 
-  // Flatten nested object into path-value pairs
   flattenObject(obj, parentPath = '') {
     const result = [];
 
@@ -29,7 +28,6 @@ class SearchEngine {
     return result;
   }
 
-  // Get flattened data from cache or build it
   getFlattenedCache(dataArray) {
     if (!this._searchCache.has(dataArray)) {
       const flattened = dataArray.map(obj => this.flattenObject(obj));
@@ -41,7 +39,6 @@ class SearchEngine {
     return this._searchCache.get(dataArray).flattened;
   }
 
-  // Main entry
   search(dataArray, queryOrQueries, fallbackFields = null) {
     const flattened = this.getFlattenedCache(dataArray);
     const cache = this._searchCache.get(dataArray);
@@ -61,101 +58,168 @@ class SearchEngine {
     return results;
   }
 
-  // Simple string search
   searchSimple(flattened, dataArray, normalizedQuery, fields) {
     return dataArray.filter((_, index) => {
       return flattened[index].some(({ path, value }) => {
-        const inFields = !fields || fields.includes(path);
+        const inFields = !fields || fields.some(field => path.startsWith(field));
         return inFields && value.toLowerCase().includes(normalizedQuery);
       });
     });
   }
 
-  // Complex structured query
   searchComplex(flattened, dataArray, queryGroups) {
     const lower = (s) => s.toLowerCase();
 
-    const allFilters = queryGroups.filter(q => q.match === 'all');
-    const anyFilters = queryGroups.filter(q => q.match === 'any');
-    const biggerFilters = queryGroups.filter(q => q.match === 'bigger');
-    const smallerFilters = queryGroups.filter(q => q.match === 'smaller');
+    // Require all the matchs to exists
+    const filterAll = (data, query) => {
+      return data.filter((item) => {
+        const idx = dataArray.indexOf(item);
+        const flat = flattened[idx];
+        const queries = query.queries.map(lower);
+        const fields = query.fields ?? [];
 
-    const passedAll = dataArray.filter((_, idx) => {
-      const flat = flattened[idx];
-
-      for (const group of allFilters) {
-        const queries = group.queries.map(lower);
-        const fields = group.fields ?? [];
-
-        const groupPasses = queries.every(q =>
+        return queries.every(q =>
           flat.some(({ path, value }) =>
-            (!fields.length || fields.includes(path)) &&
-            value.toLowerCase().includes(q)
-          )
-        );
-
-        if (!groupPasses) return false;
-      }
-
-      return true;
-    });
-
-    const passedAllAndBigger = passedAll.filter((_, idx) => {
-      const flat = flattened[idx];
-
-      for (const group of biggerFilters) {
-        const queryValue = parseFloat(group.queries[0]);
-        const fields = group.fields ?? [];
-
-        const groupPasses = flat.some(({ path, value }) => {
-          const fieldValue = parseFloat(value);
-          return (!fields.length || fields.includes(path)) && fieldValue > queryValue;
-        });
-
-        if (!groupPasses) return false;
-      }
-      return true;
-    });
-
-    const passedAllAndBiggerAndSmaller = passedAllAndBigger.filter((_, idx) => {
-      const flat = flattened[idx];
-
-      for (const group of smallerFilters) {
-        const queryValue = parseFloat(group.queries[0]);
-        const fields = group.fields ?? [];
-
-        const groupPasses = flat.some(({ path, value }) => {
-          const fieldValue = parseFloat(value);
-          return (!fields.length || fields.includes(path)) && fieldValue < queryValue;
-        });
-
-        if (!groupPasses) return false;
-      }
-      return true;
-    });
-
-    if (!anyFilters.length) return passedAllAndBiggerAndSmaller;
-
-    return passedAllAndBiggerAndSmaller.filter(item => {
-      const idx = dataArray.indexOf(item);
-      const flat = flattened[idx];
-
-      return anyFilters.some(group => {
-        const queries = group.queries.map(lower);
-        const fields = group.fields ?? [];
-
-        return queries.some(q =>
-          flat.some(({ path, value }) =>
-            (!fields.length || fields.includes(path)) &&
+            (!fields.length || fields.some(f => path.startsWith(f))) &&
             value.toLowerCase().includes(q)
           )
         );
       });
-    });
-  }
+    }
 
-  
+    // Require any of the matchs to exists, but at least one
+    const filterAny = (data, query) => {
+      return data.filter((item) => {
+        const idx = dataArray.indexOf(item);
+        const flat = flattened[idx];
+        const queries = query.queries.map(lower);
+        const fields = query.fields ?? [];
+
+        return queries.some(q =>
+          flat.some(({ path, value }) =>
+            (!fields.length || fields.some(f => path.startsWith(f))) &&
+            value.toLowerCase().includes(q)
+          )
+        );
+      });
+    }
+
+    const filterBigger = (data, query) => {
+      return data.filter((item) => {
+        const idx = dataArray.indexOf(item);
+        const flat = flattened[idx];
+        const queryValue = parseFloat(query.queries[0]);
+        const fields = query.fields ?? [];
+
+        return flat.some(({ path, value }) => {
+          const fieldValue = parseFloat(value);
+          return !isNaN(fieldValue) &&
+            (!fields.length || fields.some(f => path.startsWith(f))) &&
+            fieldValue > queryValue;
+        });
+      });
+    }
+
+    const filterSmaller = (data, query) => {
+      return data.filter((item) => {
+        const idx = dataArray.indexOf(item);
+        const flat = flattened[idx];
+        const queryValue = parseFloat(query.queries[0]);
+        const fields = query.fields ?? [];
+
+        return flat.some(({ path, value }) => {
+          const fieldValue = parseFloat(value);
+          return !isNaN(fieldValue) &&
+            (!fields.length || fields.some(f => path.startsWith(f))) &&
+            fieldValue < queryValue;
+        });
+      });
+    }
+
+    const filterEqual = (data, query) => {
+      return data.filter((item) => {
+        const idx = dataArray.indexOf(item);
+        const flat = flattened[idx];
+        const queryValue = parseFloat(query.queries[0]);
+        const fields = query.fields ?? [];
+
+        return flat.some(({ path, value }) => {
+          const fieldValue = parseFloat(value);
+          return !isNaN(fieldValue) &&
+            (!fields.length || fields.some(f => path.startsWith(f))) &&
+            fieldValue === queryValue;
+        });
+      });
+    }
+
+    const filterNotEqual = (data, query) => {
+      return data.filter((item) => {
+        const idx = dataArray.indexOf(item);
+        const flat = flattened[idx];
+        const queryValue = parseFloat(query.queries[0]);
+        const fields = query.fields ?? [];
+
+        return flat.some(({ path, value }) => {
+          const fieldValue = parseFloat(value);
+          return !isNaN(fieldValue) &&
+            (!fields.length || fields.some(f => path.startsWith(f))) &&
+            fieldValue !== queryValue;
+        });
+      });
+    }
+
+    const filterBetween = (data, query) => {
+      return data.filter((item) => {
+        const idx = dataArray.indexOf(item);
+        const flat = flattened[idx];
+        const queryValue1 = parseFloat(query.queries[0]);
+        const queryValue2 = parseFloat(query.queries[1]);
+        const fields = query.fields ?? [];
+
+        return flat.some(({ path, value }) => {
+          const fieldValue = parseFloat(value);
+          return !isNaN(fieldValue) &&
+            (!fields.length || fields.some(f => path.startsWith(f))) &&
+            fieldValue >= queryValue1 && fieldValue <= queryValue2;
+        });
+      });
+    }
+
+    // Sort the queryGroups by all, =, !=, >, <, between and in the last any
+    queryGroups.sort((a, b) => {
+      const order = {
+        'all': 0,
+        '=': 1,
+        '!=': 2,
+        '>': 3,
+        '<': 4,
+        '<>': 5,
+        'any': 6
+      };
+      return order[a.operator] - order[b.operator];
+    });
+
+    const operators = {
+      'all': filterAll,
+      'any': filterAny,
+      '>': filterBigger,
+      '<': filterSmaller,
+      '=': filterEqual,
+      '!=': filterNotEqual,
+      '<>': filterBetween
+    };
+
+    let filtered = dataArray;
+
+    for (const query of queryGroups) {
+      if (operators[query.operator]) {
+        filtered = operators[query.operator](filtered, query)
+      }
+    }
+
+    return filtered;
+  }
 }
 
-if (typeof module != 'undefined') module.exports = SearchEngine;
+if (typeof module !== 'undefined') module.exports = SearchEngine;
 else window.search = new SearchEngine();
