@@ -118,18 +118,13 @@ let controllerLogOutput;
 if (typeof Controller !== 'undefined') {
   controllerLogOutput = document.getElementById('controller-log');
 
-  const demoController = new Controller(demoAsyncFunc.bind(this));
-  demoAsyncFunc = demoController
+  demoAsyncFunc = Controller.wrap(demoAsyncFunc);
 
   demoAsyncFunc.addEvent("onDone", (result, query) => controllerLogOutput.innerHTML = `SUCCESS: ${result} (Original: ${query})<br>` + controllerLogOutput.innerHTML)
   demoAsyncFunc.addEvent("onError", (error) => controllerLogOutput.innerHTML = `ERROR: ${error.message}<br>` + controllerLogOutput.innerHTML)
   demoAsyncFunc.addEvent("onAbort", (query) => controllerLogOutput.innerHTML = `ABORTED by new call (Original: ${query})<br>` + controllerLogOutput.innerHTML)
 
   demoAsyncFunc.startDelayMs = 0
-
-  demoAsyncFunc = demoAsyncFunc.exec.bind(demoAsyncFunc);
-
-  demoAsyncFunc.Controller = demoController;
 
 
   window.demoControlledFetch = (query) => {
@@ -147,8 +142,7 @@ if (typeof Controller !== 'undefined') {
 
 
   // 📡 Bind via Controller
-  const SearchController = new Controller(SearchFunction.bind(this));
-  SearchFunction = SearchController;
+  SearchFunction = Controller.wrap(SearchFunction);
 
   const searchResult = document.getElementById('searchResult');
 
