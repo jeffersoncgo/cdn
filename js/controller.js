@@ -1,5 +1,5 @@
 class Controller {
-  constructor(func, AbortBeforeRun = true, startDelayMs = 0) {
+  constructor(func, AbortBeforeRun = true, startDelayMs = 0, intervalBetweenRunsMs = 0) {
     this.func = func;
     this.events = {
       onDone: [],
@@ -7,10 +7,13 @@ class Controller {
       onError: []
     };
     this.startDelayMs = startDelayMs;
+    this.intervalBetweenRunsMs = intervalBetweenRunsMs; //If the try to run, is smaller than the interval, we will just not execute
     this.AbortBeforeRun = AbortBeforeRun;
+
     this.running = false;
     this.controller = null;
-    this.timeout = null;
+    this._timeout = null;
+    this._lastRun = null;
 
     this._resolve = null;
     this._reject = null;
@@ -24,16 +27,21 @@ class Controller {
   exec(...params) {
     if (this.running && !this.AbortBeforeRun) return Promise.resolve();
 
-    if (this.timeout) {
-      clearTimeout(this.timeout);
+    if (this._timeout) {
+      clearTimeout(this._timeout);
       this.abort(...params);
     }
 
     return new Promise((resolve, reject) => {
+      // Check the intervalbetween runs here
+      if (this._lastRun && Date.now() - this._lastRun < this.intervalBetweenRunsMs) {
+        return;
+      }
       this._resolve = resolve;
       this._reject = reject;
 
-      this.timeout = setTimeout(async () => {
+      this._timeout = setTimeout(async () => {
+        this._lastRun = Date.now();
         this.controller = new AbortController();
         const signal = this.controller.signal;
         this.running = true;
@@ -49,7 +57,7 @@ class Controller {
           }
         } finally {
           this.running = false;
-          this.timeout = null;
+          this._timeout = null;
           this.controller = null;
           this._resolve = null;
           this._reject = null;
@@ -63,9 +71,9 @@ class Controller {
       this.controller.abort();
     }
 
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-      this.timeout = null;
+    if (this._timeout) {
+      clearTimeout(this._timeout);
+      this._timeout = null;
     }
 
     this.running = false;
@@ -162,7 +170,23 @@ if (typeof module !== 'undefined') module.exports = Controller;
 //   events.onSearchFinish(items)
 //   return items;
 // }
-// This bellow is a "deprecated" way of use it, this is now replaced by the Controller.wrap function
+
+// This is a way of use it
+// Wrap your async function
+// const reIndex = Controller.wrap(this.reIndex);
+// Access its Controller instance
+// const ctl = reIndex.Controller;
+// ctl.startDelayMs = 10;
+// ctl.abortBeforeRun = true;
+// Save it for later use
+// this.reIndex = reIndex;
+
+// Or you can directly wrap the function when assign it
+// this.reIndex = Controller.wrap(this.reIndex);
+// Can even pass the options directly
+// this.reIndex = Controller.wrap(this.reIndex, {startDelayMs: 10, abortBeforeRun: true});
+
+// This bellow is a "deprecated" way of use it, this is now replaced by the Controller.wrap function, that does it easily
 // const controller = new Controller(searchItems.bind(this));
 // searchItems = controller;
 // searchItems = searchItems.exec.bind(searchItems);

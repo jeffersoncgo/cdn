@@ -82,11 +82,9 @@ const Sorters = {
 }
 
 
-
 class TableSorter {
   constructor(TableId, SortConfig, hasFooter = false) {
     this.Table = typeof TableId == 'object' ? TableId : document.getElementById(TableId);
-    this.Table.addEventListener('Sorter', this.Sort);
     this.Dir = 'Descending';
     this.hasFooter = hasFooter;
     this.Header = {
@@ -100,12 +98,15 @@ class TableSorter {
     this.SortConfig = SortConfig;
     this.SortIcons = { Desc: ' ⤵', Asc: ' ⤴' };
     this.LastSortedField = undefined;
+    this.CurrentSortedField = undefined;
     this.Rows = {
       'Original': [], //While this is only the originalRows content, so we can change it's order without change the table content
       'Sorted': {}, //This is the rows already sorted, grouped by sorttile
       'LastSorted': [] //This here will store the Last Sorted rows array, for easier check to see if they actually changed
     };
-    this.NeedsIndexing = true;
+    this._isApplyingSort = false;
+    this._isReady = false;
+    this.TableObserver = undefined;
     this.Setup();
   }
 
@@ -113,56 +114,81 @@ class TableSorter {
     this.UpdateHeader();
     this.SetupHeader();
     this.SetSortConfig(this.SortConfig);
+    this.SetupController();
     this.SetupObserver();
+    this._isReady = true;
+  }
+
+  Destroy = () => {
+    this.ClearObserver();
+    this._isReady = false;
   }
 
   SetupObserver = () => {
     this.TableObserver = new Observer(this.Table);
-    this.TableObserver.SetListeners(['childList', 'attributeFilter']);
+    this.TableObserver.SetListeners([]);
     this.TableObserver.Start();
-    this.TableObserver.AddCallBack(async () => {
-      await this.reIndex();
-    });
+    this.TableObserver.AddCallBack(Controller.wrap(async () => await this.reIndex(), { delayMs: 100, intervalBetweenRunsMs: 1000 }));
   }
+
+  SetupController = () => {
+    this.reIndex = Controller.wrap(this.reIndex);
+  };
 
   ClearObserver = () => {
     this.TableObserver.Destroy();
   }
 
   rowsChanged = () => {
-    if(!this.Rows.LastSorted || !this.Rows.Sorted[this.LastSortedField])
+    if(!this.Rows.LastSorted || !this.Rows.Sorted[this.CurrentSortedField])
       return true;
 
-    // Check the this.Rows.LastSorted with this.Rows.Sorted[this.LastSortedField], to see if theres any change
-    if (this.Rows.LastSorted.length === 0 && this.Rows.Sorted[this.LastSortedField].length === 0) {
-      return false; // Both are empty, no change
+    if (this.Rows.LastSorted.length === 0 && this.Rows.Sorted[this.CurrentSortedField].length === 0) {
+      return false;
     }
 
-    if (this.Rows.LastSorted.length !== this.Rows.Sorted[this.LastSortedField].length) {
-      return true; // Lengths differ, rows have changed
+    if (this.Rows.LastSorted.length !== this.Rows.Sorted[this.CurrentSortedField].length) {
+      return true;
     }
 
     for (let i = 0; i < this.Rows.LastSorted.length; i++) {
-      if (this.Rows.LastSorted[i] !== this.Rows.Sorted[this.LastSortedField][i]) {
-        return true; // Row order or content has changed
+      if (this.Rows.LastSorted[i] !== this.Rows.Sorted[this.CurrentSortedField][i]) {
+        return true;
       }
     }
-    return false; // No changes detected
+    return false;
   }
 
   reIndex = async () => {
-    // This here will store the actual sort state
-    if(this.Rows.Sorted[this.LastSortedField])
-      this.Rows.LastSorted = [...this.Rows.Sorted[this.LastSortedField]];
-    this.ClearObserver();
-    this.NeedsIndexing = false;
-    await this.FillOriginalRows();
-    await this.GenerateSortedData();
-    this.UpdateFooter();
-    this.SetupObserver();
-    if(this.rowsChanged())
-      this.Sort(this.LastSortedField);
-  }
+    if (this.isIndexing)
+      return console.log('Sorry, we are still indexing the data');
+    
+    try {
+      this.isIndexing = true;
+      
+      if(Array.isArray(this.Rows.Sorted[this.CurrentSortedField]))
+        this.Rows.LastSorted = [...this.Rows.Sorted[this.CurrentSortedField]];
+      
+      await this.FillOriginalRows();
+      await this.GenerateSortedData();
+      this.UpdateFooter();
+      
+      if(this.rowsChanged()) {
+        console.log('Rows Changed - Reapplying sort');
+        this.LastSortedField = this.CurrentSortedField;
+        
+        this.TableObserver.Stop();
+        try {
+          this.ApplySortToTable(this.CurrentSortedField, this.IsDescending());
+        } finally {
+          this.TableObserver.Start();
+        }
+      }
+    } catch (error) {
+      console.error("Error during reIndex:", error);
+    }
+    this.isIndexing = false;
+  };
 
   UpdateHeader = () => {
     this.Header = {};
@@ -223,7 +249,7 @@ class TableSorter {
   }
 
   ChageSortDir = Field => {
-    if (this.LastSortedField != Field)
+    if (this.CurrentSortedField != Field)
       this.Dir = 'Ascending'
     else
       this.Dir = this.Dir == 'Descending' ? 'Ascending' : 'Descending';
@@ -256,70 +282,29 @@ class TableSorter {
     return this.GetCollumByIndex(this.GetCollumnIndex(Title));
   }
 
-  SortContent = async (Field, IsDescending, useTable = false) => {
+  Sort = async Field => {
+    this.TableObserver.Stop();
+    
     try {
-      if (useTable) {
-        const rows = this.Table.tBodies[0].rows;
-        const sortedRows = this.Rows.Sorted[Field];
-        let order, factor;
-        if (IsDescending) {
-          order = 0;
-          factor = 1;
-        } else {
-          order = rows.length - 1;
-          factor = -1;
-        }
-        for (let index = 0; index < rows.length; index++) {
-          const row = rows[index];
-          if (row.hasAttribute('_sortignore'))
-            continue;
-          const sortedRow = sortedRows[order + factor * index];
-          if (sortedRow == row)
-            continue;
-          row.parentNode.insertBefore(sortedRow, row);
-        }
-      } else {
-        const Collum_Index = this.GetCollumnIndex(Field);
-        const SortType = this.GetSortType(Field);
-        const rows = [...this.Rows.Original].filter(row => this.Header.Row != row && this.Footer.Row != row);
-        rows.sort((a, b) => {
-          const x = a.getElementsByTagName("TD")[Collum_Index];
-          const y = b.getElementsByTagName("TD")[Collum_Index];
-          if (a.hasAttribute('_sortignore') || b.hasAttribute('_sortignore'))
-            return 0;
-          const result = SortType(x, y, IsDescending);
-          return result;
-        });
-        this.Rows.Sorted[Field] = rows;
-      }
-    } catch { }
-  }
+      this.ChageSortDir(Field);
+      this.CurrentSortedField = Field;
+      const Collum_Index = this.GetCollumnIndex(Field);
+      const Collum = this.Header.Cells[Collum_Index];
+      const IsDescending = this.IsDescending();
 
-  Sort = Field => {
-    if (this.NeedsIndexing) {
-      console.log('Sorry, we are still indexing the data')
-      return
-    };
-    this.ChageSortDir(Field);
-    this.LastSortedField = Field;
-    const Collum_Index = this.GetCollumnIndex(Field);
-    const Collum = this.Header.Cells[Collum_Index];
-    const IsDescending = this.IsDescending();
+      if (Collum_Index == -1) return;
 
-    if (Collum_Index == -1) return;
+      this.CleanFieldClasses();
+      Collum.classList.add('collumnsorted');
+      Collum.classList.add(IsDescending ? 'sorted_descending' : 'sorted_ascending');
+      this.ClearCollumnIcon();
+      this.AddCollumnIcon(Field, IsDescending);
 
-    this.CleanFieldClasses();
-
-    Collum.classList.add('collumnsorted');
-
-    Collum.classList.add(IsDescending ? 'sorted_descending' : 'sorted_ascending')
-
-    this.ClearCollumnIcon();
-
-    this.AddCollumnIcon(Field, IsDescending);
-
-    this.SortContent(Field, IsDescending, true);
-  }
+      this.ApplySortToTable(Field, IsDescending);
+    } finally {
+      this.TableObserver.Start();
+    }
+  };
 
   FillOriginalRows = async () => {//Keep this as a simple for loop, if you use foreach, it will bug
     this.Rows.Original = [];
@@ -329,13 +314,62 @@ class TableSorter {
     }
   };
 
-  GenerateSortedData = async () => { //Keep this as a simple for loop, if you use foreach, it will bug
+  GenerateSortedData = async () => {
     this.Rows.Sorted = {};
     for (let index = 0; index < this.Header.Cells.length; index++) {
       const Collumn = this.Header.Cells[index];
       if (Collumn.hasAttribute('_sortignore'))
         continue;
-      await this.SortContent(Collumn.getAttribute('sorttitle') || Collumn.innerText, true, false)
+      
+      const Field = Collumn.getAttribute('sorttitle') || Collumn.innerText;
+      const Collum_Index = this.GetCollumnIndex(Field);
+      const SortType = this.GetSortType(Field);
+      
+      const rows = [...this.Rows.Original].filter(row => 
+        this.Header.Row != row && this.Footer.Row != row && !row.hasAttribute('_sortignore')
+      );
+      
+      rows.sort((a, b) => {
+        const x = a.getElementsByTagName("TD")[Collum_Index];
+        const y = b.getElementsByTagName("TD")[Collum_Index];
+        if (!x || !y) return 0;
+        return SortType(x, y, true);
+      });
+      
+      this.Rows.Sorted[Field] = rows;
+    }
+  };
+
+  ApplySortToTable = (Field, IsDescending) => {
+    try {
+      const rows = this.Table.tBodies[0].rows;
+      const sortedRows = this.Rows.Sorted[Field];
+      
+      if (!sortedRows || !Array.isArray(sortedRows)) {
+        console.warn(`No sorted data available for field: ${Field}`);
+        return;
+      }
+
+      let order, factor;
+      if (IsDescending) {
+        order = 0;
+        factor = 1;
+      } else {
+        order = sortedRows.length - 1;
+        factor = -1;
+      }
+
+      for (let index = 0; index < rows.length; index++) {
+        const row = rows[index];
+        if (row.hasAttribute('_sortignore')) continue;
+        
+        const sortedRow = sortedRows[order + factor * index];
+        if (sortedRow === row) continue;
+        
+        row.parentNode.insertBefore(sortedRow, row);
+      }
+    } catch (error) {
+      console.error("Error applying sort to table:", error);
     }
   };
 
