@@ -67,6 +67,16 @@ class Observer {
     this._isObserving = true;
   }
 
+  SetListeners(listeners) {
+    const wasObserving = this._isObserving;
+    if(this._isObserving)
+      this.Stop();
+    this.RemoveAll();
+    this.Listeners = listeners;
+    if(wasObserving)
+      this.Start();
+  }
+
   AddListeners(callback) {
     this.Listeners.forEach((listener) => {
       this.targetElement.removeEventListener(listener, callback);
