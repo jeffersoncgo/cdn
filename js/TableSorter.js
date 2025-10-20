@@ -140,7 +140,7 @@ class TableSorter {
   }
 
   rowsChanged = () => {
-    if(!this.Rows.LastSorted || !this.Rows.Sorted[this.CurrentSortedField])
+    if(!this.LastSortedField || !this.CurrentSortedField)
       return true;
 
     if (this.Rows.LastSorted.length === 0 && this.Rows.Sorted[this.CurrentSortedField].length === 0) {
