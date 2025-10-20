@@ -9,16 +9,16 @@ const Sorters = {
         xValue = x.innerText;
         x.setAttribute('_sortValue', xValue);
       }
-  
+
       let yValue = y.getAttribute('_sortValue');
       if (!yValue) {
         yValue = y.innerText;
         y.setAttribute('_sortValue', yValue);
       }
 
-      if(xValue < yValue)
+      if (xValue < yValue)
         return Descending ? 1 : -1;
-      if(xValue > yValue)
+      if (xValue > yValue)
         return Descending ? -1 : 1;
       return 0;
     } catch {
@@ -34,7 +34,7 @@ const Sorters = {
       } else {
         xValue = parseFloat(xValue);
       }
-  
+
       let yValue = y.getAttribute('_sortValue');
       if (!yValue) {
         yValue = Date.parse(y.innerText).getTime();
@@ -43,9 +43,9 @@ const Sorters = {
         yValue = parseFloat(yValue);
       }
 
-      if(xValue > yValue)
+      if (xValue > yValue)
         return Descending ? 1 : -1;
-      if(xValue < yValue)
+      if (xValue < yValue)
         return Descending ? -1 : 1;
       return 0;
     } catch {
@@ -61,7 +61,7 @@ const Sorters = {
       } else {
         xValue = parseFloat(xValue);
       }
-  
+
       let yValue = y.getAttribute('_sortValue');
       if (!yValue) {
         yValue = parseFloat(y.innerText, true);
@@ -70,9 +70,9 @@ const Sorters = {
         yValue = parseFloat(yValue);
       }
 
-      if(xValue > yValue)
+      if (xValue > yValue)
         return Descending ? 1 : -1;
-      if(xValue < yValue)
+      if (xValue < yValue)
         return Descending ? -1 : 1;
       return 0;
     } catch {
@@ -80,6 +80,8 @@ const Sorters = {
     }
   }
 }
+
+
 
 class TableSorter {
   constructor(TableId, SortConfig, hasFooter = false) {
@@ -100,7 +102,8 @@ class TableSorter {
     this.LastSortedField = undefined;
     this.Rows = {
       'Original': [], //While this is only the originalRows content, so we can change it's order without change the table content
-      'Sorted': {} //This is the rows already sorted, grouped by sorttile
+      'Sorted': {}, //This is the rows already sorted, grouped by sorttile
+      'LastSorted': [] //This here will store the Last Sorted rows array, for easier check to see if they actually changed
     };
     this.NeedsIndexing = true;
     this.Setup();
@@ -110,24 +113,61 @@ class TableSorter {
     this.UpdateHeader();
     this.SetupHeader();
     this.SetSortConfig(this.SortConfig);
+    this.SetupObserver();
+  }
 
-    let TableObserver = new Observer(this.Table);
-    TableObserver.Start();
-    TableObserver.AddCallBack(async (mutationsList, observer) => {
-      if (this.NeedsIndexing) {
-        this.NeedsIndexing = false;
-        TableObserver.Destroy();
-        await this.FillOriginalRows();
-        await this.GenerateSortedData();
-        this.UpdateFooter();
-      }
+  SetupObserver = () => {
+    this.TableObserver = new Observer(this.Table);
+    this.TableObserver.SetListeners(['childList', 'attributeFilter']);
+    this.TableObserver.Start();
+    this.TableObserver.AddCallBack(async () => {
+      await this.reIndex();
     });
+  }
+
+  ClearObserver = () => {
+    this.TableObserver.Destroy();
+  }
+
+  rowsChanged = () => {
+    if(!this.Rows.LastSorted || !this.Rows.Sorted[this.LastSortedField])
+      return true;
+
+    // Check the this.Rows.LastSorted with this.Rows.Sorted[this.LastSortedField], to see if theres any change
+    if (this.Rows.LastSorted.length === 0 && this.Rows.Sorted[this.LastSortedField].length === 0) {
+      return false; // Both are empty, no change
+    }
+
+    if (this.Rows.LastSorted.length !== this.Rows.Sorted[this.LastSortedField].length) {
+      return true; // Lengths differ, rows have changed
+    }
+
+    for (let i = 0; i < this.Rows.LastSorted.length; i++) {
+      if (this.Rows.LastSorted[i] !== this.Rows.Sorted[this.LastSortedField][i]) {
+        return true; // Row order or content has changed
+      }
+    }
+    return false; // No changes detected
+  }
+
+  reIndex = async () => {
+    // This here will store the actual sort state
+    if(this.Rows.Sorted[this.LastSortedField])
+      this.Rows.LastSorted = [...this.Rows.Sorted[this.LastSortedField]];
+    this.ClearObserver();
+    this.NeedsIndexing = false;
+    await this.FillOriginalRows();
+    await this.GenerateSortedData();
+    this.UpdateFooter();
+    this.SetupObserver();
+    if(this.rowsChanged())
+      this.Sort(this.LastSortedField);
   }
 
   UpdateHeader = () => {
     this.Header = {};
     this.Header.Row = this.Table.getElementsByTagName('thead')[0]?.getElementsByTagName('tr')[0];
-    if(!this.Header.Row)
+    if (!this.Header.Row)
       return; this.Header.Cells = [];
     this.Header.Cells = this.Header.Row.getElementsByTagName('th');
   }
@@ -135,7 +175,7 @@ class TableSorter {
   UpdateFooter = () => {
     this.Footer = {};
     this.Footer.Row = this.Table.getElementsByTagName('tfoot')[0]?.getElementsByTagName('tr')[0];
-    if(!this.Footer.Row)
+    if (!this.Footer.Row)
       return; this.Footer.Cells = [];
     this.Footer.Cells = [...this.hasFooter ? this.Footer.Row.getElementsByTagName('th') : []];
   }
@@ -247,12 +287,12 @@ class TableSorter {
           const y = b.getElementsByTagName("TD")[Collum_Index];
           if (a.hasAttribute('_sortignore') || b.hasAttribute('_sortignore'))
             return 0;
-          const result =  SortType(x, y, IsDescending);
+          const result = SortType(x, y, IsDescending);
           return result;
         });
         this.Rows.Sorted[Field] = rows;
       }
-    } catch {}
+    } catch { }
   }
 
   Sort = Field => {
@@ -290,6 +330,7 @@ class TableSorter {
   };
 
   GenerateSortedData = async () => { //Keep this as a simple for loop, if you use foreach, it will bug
+    this.Rows.Sorted = {};
     for (let index = 0; index < this.Header.Cells.length; index++) {
       const Collumn = this.Header.Cells[index];
       if (Collumn.hasAttribute('_sortignore'))
@@ -313,3 +354,75 @@ class TableSorter {
 // }
 
 // const TableSort = new TableSorter('downloadTable');
+
+// Other more complete example
+
+// function parseIp(ip) {
+//   if (!ip) return 0;
+//   const ipOnly = ip.split(':')[0].trim();
+//   if (/^\d{1,3}(\.\d{1,3}){3}$/.test(ipOnly)) {
+//     const parts = ipOnly.split('.').map(n => Math.min(255, Math.max(0, parseInt(n,10) || 0)));
+//     return (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3];
+//   }
+//   return ipOnly.localeCompare(ip);
+// }
+
+// function getRowFromAB(ab) {
+//   return ab?.parentElement
+// }
+
+// Sorters['Peer'] = (a, b) => {
+//   const vA = a.innerText + (a.innerText || '');
+//   const vB = b.innerText + (b.innerText || '');
+//   return vA.localeCompare(vB);
+// };
+// Sorters['IP'] = (a, b) => {
+//   const ipA = a.innerText || '';
+//   const ipB = b.innerText || '';
+//   return parseIp(ipA) - parseIp(ipB);
+// };
+// Sorters['Endpoint'] = (a, b) => {
+//   const ipA = (a.innerText || '').split(':')[0] || '';
+//   const ipB = (b.innerText || '').split(':')[0] || '';
+//   return parseIp(ipA) - parseIp(ipB);
+// };
+
+// Sorters['Receive'] = (a, b) => {
+//   a = getRowFromAB(a);
+//   b = getRowFromAB(b);
+//   const rxA = parseFloat(a.getAttribute('data-rxSpeed')) || 0;
+//   const rxB = parseFloat(b.getAttribute('data-rxSpeed')) || 0;
+//   return rxB - rxA;
+// }
+
+// Sorters['Send'] = (a, b) => {
+//   a = getRowFromAB(a);
+//   b = getRowFromAB(b);
+//   const txA = parseFloat(a.getAttribute('data-txSpeed')) || 0;
+//   const txB = parseFloat(b.getAttribute('data-txSpeed')) || 0;
+//   return txB - txA;
+// }
+
+// Sorters['LastHandshake'] = (a, b) => {
+//   a = getRowFromAB(a);
+//   b = getRowFromAB(b);
+//   const hsA = parseInt(a.getAttribute('data-handshake')) || 0;
+//   const hsB = parseInt(b.getAttribute('data-handshake')) || 0;
+//   return hsB - hsA;
+// }
+
+// const sortConfig = {
+//   'PEER': Sorters.Peer,
+//   'ENDPOINT': Sorters.Endpoint,
+//   'IP': Sorters.IP,
+//   'RECEIVE': Sorters.Receive,
+//   'SEND': Sorters.Send,
+//   'LAST HANDSHAKE': Sorters.LastHandshake
+// };
+
+// Init sorter
+// document.addEventListener('DOMContentLoaded', () => {
+//   setTimeout(() => {
+//     window.peersTable_ = new TableSorter('peersTable', sortConfig, false);
+//   }, 800);
+// });

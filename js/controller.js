@@ -162,6 +162,7 @@ if (typeof module !== 'undefined') module.exports = Controller;
 //   events.onSearchFinish(items)
 //   return items;
 // }
+// This bellow is a "deprecated" way of use it, this is now replaced by the Controller.wrap function
 // const controller = new Controller(searchItems.bind(this));
 // searchItems = controller;
 // searchItems = searchItems.exec.bind(searchItems);
