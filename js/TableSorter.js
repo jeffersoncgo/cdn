@@ -341,6 +341,9 @@ class TableSorter {
   };
 
   ApplySortToTable = (Field, IsDescending) => {
+    if(!Field)
+      return;
+    
     try {
       const rows = this.Table.tBodies[0].rows;
       const sortedRows = this.Rows.Sorted[Field];
