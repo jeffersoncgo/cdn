@@ -83,13 +83,13 @@ class Controller {
     this._reject = null;
     this.controller = null;
   }
-
+  
   static wrap(fn, options) {
-  const controller = new Controller(fn, options?.abortBeforeRun, options?.delayMs);
-  const bound = controller.exec.bind(controller);
-  bound.Controller = controller;
-  return bound;
-}
+    const controller = new Controller(fn, options?.abortBeforeRun, options?.delayMs, options?.intervalBetweenRunsMs);
+    const bound = controller.exec.bind(controller);
+    bound.Controller = controller;
+    return bound;
+  }
 }
 
 if (typeof module !== 'undefined') module.exports = Controller;
