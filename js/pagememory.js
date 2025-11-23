@@ -28,7 +28,26 @@ class PageMemoryDB {
 
             request.onsuccess = () => {
                 this.db = request.result;
-                resolve(this.db);
+                
+                // Verify that the object store exists
+                if (!this.db.objectStoreNames.contains(this.storeName)) {
+                    console.warn(`Object store '${this.storeName}' not found. Recreating database...`);
+                    this.db.close();
+                    
+                    // Delete and recreate the database
+                    const deleteRequest = indexedDB.deleteDatabase(this.dbName);
+                    deleteRequest.onsuccess = () => {
+                        console.log('Database deleted, reopening...');
+                        // Reopen with upgrade
+                        this.init().then(resolve).catch(reject);
+                    };
+                    deleteRequest.onerror = () => {
+                        console.error('Failed to delete database:', deleteRequest.error);
+                        reject(deleteRequest.error);
+                    };
+                } else {
+                    resolve(this.db);
+                }
             };
 
             request.onupgradeneeded = (event) => {
@@ -39,6 +58,7 @@ class PageMemoryDB {
                     const objectStore = db.createObjectStore(this.storeName, { keyPath: 'url' });
                     objectStore.createIndex('url', 'url', { unique: true });
                     objectStore.createIndex('timestamp', 'timestamp', { unique: false });
+                    console.log(`Object store '${this.storeName}' created successfully`);
                 }
             };
         });
@@ -179,22 +199,15 @@ class pageMemory {
             SavedElements: null,
         };
 
+        // Reduced event list to avoid duplicates and improve performance
+        // input covers most text changes, change covers selects/checkboxes
+        // click covers buttons/links, submit covers forms
         this.Listeners = [
-            'click',
-            'keydown',
-            'keyup',
-            'keypress',
-            'submit',
-            'input',
-            'change',
-            'load',
-            // 'unload', //Removed because of browser security errors
-            'DOMContentLoaded',
-            'readystatechange',
-            'onresize',
-            'oncopy',
-            'oncut',
-            'onpaste'
+            'input',    // Covers text input, contenteditable changes
+            'change',   // Covers select, checkbox, radio changes
+            'click',    // Covers button clicks, link clicks
+            'submit',   // Covers form submissions
+            'toggle'    // Covers details element toggles
         ];
 
         this.attributesToIgnore = [
@@ -232,11 +245,18 @@ class pageMemory {
             onMemoryIsEmpty: [],
         };
 
+        // Performance monitoring
+        this.debug = false; // Set to true to see save/restore logs
+        this.saveCount = 0;
+        this.lastSaveTime = null;
+        this.saveAttempts = 0; // Tracks attempted saves (including debounced/throttled)
+
         // Wrap methods with Controller for debouncing and preventing concurrent runs
+        // Increased delays to prevent browser freezing
         this.savePageInfo = Controller.wrap(this._savePageInfo.bind(this), {
             abortBeforeRun: true,
-            delayMs: 300, // 300ms debounce for save operations
-            intervalBetweenRunsMs: 100 // Minimum 100ms between saves
+            delayMs: 1000, // 1 second debounce - waits for user to stop interacting
+            intervalBetweenRunsMs: 2000 // Minimum 2 seconds between actual saves
         });
 
         this.restorePageInfo = Controller.wrap(this._restorePageInfo.bind(this), {
@@ -344,10 +364,66 @@ class pageMemory {
         return [...document.querySelectorAll('[save]'), ...document.querySelectorAll('[data-save]')].map(this.getElementInfo);
     }
 
+    /**
+     * Convert Blob URL to actual Blob data for storage
+     * @param {string} blobUrl - The blob: URL to convert
+     * @returns {Promise<Blob|null>}
+     */
+    async blobUrlToBlob(blobUrl) {
+        if (!blobUrl || !blobUrl.startsWith('blob:')) {
+            return null;
+        }
+        
+        try {
+            const response = await fetch(blobUrl);
+            if (!response.ok) return null;
+            return await response.blob();
+        } catch (error) {
+            console.warn('Failed to convert Blob URL to Blob:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Convert Blob to Base64 for IndexedDB storage
+     * @param {Blob} blob - The blob to convert
+     * @returns {Promise<string>}
+     */
+    async blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    /**
+     * Convert Base64 to Blob
+     * @param {string} base64 - The base64 data URL
+     * @returns {Blob}
+     */
+    base64ToBlob(base64) {
+        const parts = base64.split(',');
+        const contentType = parts[0].match(/:(.*?);/)[1];
+        const raw = atob(parts[1]);
+        const rawLength = raw.length;
+        const uInt8Array = new Uint8Array(rawLength);
+        
+        for (let i = 0; i < rawLength; ++i) {
+            uInt8Array[i] = raw.charCodeAt(i);
+        }
+        
+        return new Blob([uInt8Array], { type: contentType });
+    }
+
     // Internal save method (wrapped by Controller)
     async _savePageInfo(signal) {
+        this.saveAttempts++;
+        
         // Check if operation was aborted
         if (signal?.aborted) {
+            if (this.debug) console.log('[PageMemory] Save aborted by Controller');
             throw new DOMException('Save operation aborted', 'AbortError');
         }
 
@@ -357,10 +433,38 @@ class pageMemory {
         }
 
         try {
+            const startTime = performance.now();
+            this.saveCount++;
+            
+            if (this.debug) {
+                const timeSinceLastSave = this.lastSaveTime ? Date.now() - this.lastSaveTime : 'N/A';
+                console.log(`[PageMemory] Save #${this.saveCount} starting (attempts: ${this.saveAttempts}, time since last: ${timeSinceLastSave}ms)`);
+            }
+
             const title = document.title;
             const url = window.location.href;
             const dom = document.documentElement.outerHTML;
             const savedElements = this.getElementsToSave();
+
+            // Process Blob URLs and convert to Base64 for persistence
+            for (const elementInfo of savedElements) {
+                if (elementInfo.hasBlobUrl && elementInfo.blobUrl) {
+                    try {
+                        const blob = await this.blobUrlToBlob(elementInfo.blobUrl);
+                        if (blob) {
+                            elementInfo.blobData = await this.blobToBase64(blob);
+                            if (this.debug) {
+                                console.log(`[PageMemory] Converted Blob URL to Base64 (${blob.size} bytes)`);
+                            }
+                        }
+                    } catch (error) {
+                        console.warn('Failed to process Blob URL:', error);
+                    }
+                    // Remove temporary properties
+                    delete elementInfo.hasBlobUrl;
+                    delete elementInfo.blobUrl;
+                }
+            }
 
             this.setPreviousPageInfo(title, url, dom, savedElements);
             
@@ -376,6 +480,14 @@ class pageMemory {
             }
 
             await this.db.save(url, data);
+            
+            this.lastSaveTime = Date.now();
+            const duration = performance.now() - startTime;
+            
+            if (this.debug) {
+                console.log(`[PageMemory] Save completed in ${duration.toFixed(2)}ms (${savedElements.length} elements)`);
+            }
+            
             this.execEvents('onSaveMemory', { url, data });
             return true;
         } catch (error) {
@@ -520,6 +632,22 @@ class pageMemory {
                     });
                 }
 
+                // Special handling for images with stored Blob data
+                if (element instanceof HTMLImageElement && savedElement.blobData) {
+                    try {
+                        const blob = this.base64ToBlob(savedElement.blobData);
+                        const newBlobUrl = URL.createObjectURL(blob);
+                        element.src = newBlobUrl;
+                        changed = true;
+                        
+                        if (this.debug) {
+                            console.log(`[PageMemory] Restored Blob URL for image: ${savedElement.identifier}`);
+                        }
+                    } catch (error) {
+                        console.warn('Failed to restore Blob URL:', error);
+                    }
+                }
+
                 // Restore element-specific properties (value, checked, selectedIndex, etc.)
                 const Config = this.getElementChangeConfig(element);
                 if (Config.changeField && savedElement[Config.changeField] !== undefined) {
@@ -599,14 +727,25 @@ class pageMemory {
         if (Config.changeField)
             info[Config.changeField] = Config.FieldValue;
 
-        // let's see if the memory trigger has been set
+        // Special handling for images with Blob URLs
+        // Mark them for async processing during save
+        if (element instanceof HTMLImageElement && element.src && element.src.startsWith('blob:')) {
+            info.hasBlobUrl = true;
+            info.blobUrl = element.src;
+        }
+
+        // Set up observer for this element if not already done
+        // NOTE: Observer is NOT saved to IndexedDB (causes DataCloneError)
+        // Observers are recreated on page load
         if (!element.getAttribute('added-trigger')) {
             this.addSaveTrigger(element, Config.eventName);
-            info.observer = new Observer(element);
-            info.observer.Listeners = this.Listeners;
-            this.observers.push(info.observer);
-            info.observer.AddCallBack(this.savePageInfo);
-            info.observer.Start();
+            
+            // Create observer but DON'T add it to info object
+            const observer = new Observer(element);
+            observer.Listeners = this.Listeners;
+            this.observers.push(observer);
+            observer.AddCallBack(this.savePageInfo);
+            observer.Start();
         }
 
         return info;
@@ -674,6 +813,30 @@ class pageMemory {
         }
     }
 
+    // Get performance statistics
+    getStats() {
+        const avgTimeBetweenSaves = this.saveCount > 1 && this.lastSaveTime ? 
+            (Date.now() - (this.lastSaveTime - (this.saveCount - 1) * 2000)) / this.saveCount : 0;
+        
+        return {
+            saveCount: this.saveCount,
+            saveAttempts: this.saveAttempts,
+            abortedSaves: this.saveAttempts - this.saveCount,
+            lastSaveTime: this.lastSaveTime,
+            observersCount: this.observers.length,
+            autoSaveEnabled: !!this.autoSaveInterval,
+            avgTimeBetweenSaves: avgTimeBetweenSaves.toFixed(0) + 'ms'
+        };
+    }
+
+    // Enable/disable debug logging
+    setDebug(enabled) {
+        this.debug = enabled;
+        if (enabled) {
+            console.log('[PageMemory] Debug enabled. Current stats:', this.getStats());
+        }
+    }
+
     async reset() {
         // Destroy all observers
         this.observers.forEach(observer => {
@@ -682,6 +845,11 @@ class pageMemory {
             }
         });
         this.observers = [];
+        
+        // Reset counters
+        this.saveCount = 0;
+        this.saveAttempts = 0;
+        this.lastSaveTime = null;
         
         // Clean memory
         await this.cleanMemory();
