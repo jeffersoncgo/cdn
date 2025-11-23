@@ -3,6 +3,162 @@ if (typeof module != 'undefined') {
   Controller = require("./controller");
 }
 
+/**
+ * Helper class to manage IndexedDB operations for pageMemory
+ */
+class PageMemoryDB {
+    constructor(dbName = 'pageMemoryDB', storeName = 'pageData', version = 1) {
+        this.dbName = dbName;
+        this.storeName = storeName;
+        this.version = version;
+        this.db = null;
+    }
+
+    /**
+     * Initialize the IndexedDB connection
+     */
+    async init() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(this.dbName, this.version);
+
+            request.onerror = () => {
+                console.error('IndexedDB error:', request.error);
+                reject(request.error);
+            };
+
+            request.onsuccess = () => {
+                this.db = request.result;
+                resolve(this.db);
+            };
+
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                
+                // Create object store if it doesn't exist
+                if (!db.objectStoreNames.contains(this.storeName)) {
+                    const objectStore = db.createObjectStore(this.storeName, { keyPath: 'url' });
+                    objectStore.createIndex('url', 'url', { unique: true });
+                    objectStore.createIndex('timestamp', 'timestamp', { unique: false });
+                }
+            };
+        });
+    }
+
+    /**
+     * Save data to IndexedDB
+     */
+    async save(url, data) {
+        if (!this.db) await this.init();
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([this.storeName], 'readwrite');
+            const objectStore = transaction.objectStore(this.storeName);
+            
+            const record = {
+                url: url,
+                data: data,
+                timestamp: Date.now()
+            };
+
+            const request = objectStore.put(record);
+
+            request.onsuccess = () => resolve(true);
+            request.onerror = () => {
+                console.error('Error saving to IndexedDB:', request.error);
+                reject(request.error);
+            };
+        });
+    }
+
+    /**
+     * Get data from IndexedDB by URL
+     */
+    async get(url) {
+        if (!this.db) await this.init();
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([this.storeName], 'readonly');
+            const objectStore = transaction.objectStore(this.storeName);
+            const request = objectStore.get(url);
+
+            request.onsuccess = () => {
+                resolve(request.result || null);
+            };
+
+            request.onerror = () => {
+                console.error('Error reading from IndexedDB:', request.error);
+                reject(request.error);
+            };
+        });
+    }
+
+    /**
+     * Delete data from IndexedDB by URL
+     */
+    async delete(url) {
+        if (!this.db) await this.init();
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([this.storeName], 'readwrite');
+            const objectStore = transaction.objectStore(this.storeName);
+            const request = objectStore.delete(url);
+
+            request.onsuccess = () => resolve(true);
+            request.onerror = () => {
+                console.error('Error deleting from IndexedDB:', request.error);
+                reject(request.error);
+            };
+        });
+    }
+
+    /**
+     * Clear all data from IndexedDB
+     */
+    async clear() {
+        if (!this.db) await this.init();
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([this.storeName], 'readwrite');
+            const objectStore = transaction.objectStore(this.storeName);
+            const request = objectStore.clear();
+
+            request.onsuccess = () => resolve(true);
+            request.onerror = () => {
+                console.error('Error clearing IndexedDB:', request.error);
+                reject(request.error);
+            };
+        });
+    }
+
+    /**
+     * Get all stored URLs
+     */
+    async getAllKeys() {
+        if (!this.db) await this.init();
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([this.storeName], 'readonly');
+            const objectStore = transaction.objectStore(this.storeName);
+            const request = objectStore.getAllKeys();
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => {
+                console.error('Error getting keys from IndexedDB:', request.error);
+                reject(request.error);
+            };
+        });
+    }
+
+    /**
+     * Close the database connection
+     */
+    close() {
+        if (this.db) {
+            this.db.close();
+            this.db = null;
+        }
+    }
+}
 
 
 class pageMemory {
@@ -39,7 +195,7 @@ class pageMemory {
             'oncopy',
             'oncut',
             'onpaste'
-        ]
+        ];
 
         this.attributesToIgnore = [
             "id",               // Unique identifier – should not be duplicated/restored blindly
@@ -58,7 +214,11 @@ class pageMemory {
             "lang",             // Language context
             "title",            // Tooltip – possibly dynamic
             "translate"         // i18n behavior
-          ];
+        ];
+
+        // Initialize IndexedDB
+        this.db = new PageMemoryDB('pageMemoryDB', 'pageData', 1);
+        this.dbInitialized = false;
 
         // Initialize storage key and auto-save interval
         this.storageKey = 'pageMemoryData';
@@ -70,14 +230,19 @@ class pageMemory {
             onRestoreSucess: [],
             onRestoreError: [],
             onMemoryIsEmpty: [],
-        }
+        };
 
+        // Wrap methods with Controller for debouncing and preventing concurrent runs
+        this.savePageInfo = Controller.wrap(this._savePageInfo.bind(this), {
+            abortBeforeRun: true,
+            delayMs: 300, // 300ms debounce for save operations
+            intervalBetweenRunsMs: 100 // Minimum 100ms between saves
+        });
 
-        // initialize the page memory with a delay
-        this.savePageInfo = new Controller(this.savePageInfo.bind(this))
-        this.savePageInfo = this.savePageInfo.exec.bind(this.savePageInfo);
-        this.restorePageInfo = new Controller(this.restorePageInfo.bind(this))
-        this.restorePageInfo = this.restorePageInfo.exec.bind(this.restorePageInfo);
+        this.restorePageInfo = Controller.wrap(this._restorePageInfo.bind(this), {
+            abortBeforeRun: true,
+            delayMs: 100 // 100ms debounce for restore operations
+        });
 
         this.addEvent = JCGWeb.Functions.addEvent;
         this.deleteEvent = JCGWeb.Functions.deleteEvent;
@@ -87,11 +252,21 @@ class pageMemory {
         this.observers = [];
     }
 
-    init() {
+    async init() {
         console.log('pageMemory initialized');
+        
+        // Initialize IndexedDB
+        try {
+            await this.db.init();
+            this.dbInitialized = true;
+        } catch (error) {
+            console.error('Failed to initialize IndexedDB:', error);
+            this.dbInitialized = false;
+        }
+        
         this.setOriginalPageInfo();
         // this.startAutoSave();
-        this.restorePageInfo();
+        await this.restorePageInfo();
     }
 
 
@@ -146,15 +321,22 @@ class pageMemory {
         };
     }
 
-    clearSavedMemory() {
-        localStorage.removeItem(this.storageKey);
+    async clearSavedMemory() {
+        if (!this.dbInitialized) return;
+        
+        try {
+            const currentUrl = window.location.href;
+            await this.db.delete(currentUrl);
+        } catch (error) {
+            console.error('Error clearing saved memory:', error);
+        }
     }
 
-    cleanMemory() {
+    async cleanMemory() {
         this.stopAutoSave();
         this.clearPreviousPageInfo();
         this.clearOriginalPageInfo();
-        this.clearSavedMemory();
+        await this.clearSavedMemory();
     }
 
     // Get elements marked with 'save' attribute
@@ -162,8 +344,18 @@ class pageMemory {
         return [...document.querySelectorAll('[save]'), ...document.querySelectorAll('[data-save]')].map(this.getElementInfo);
     }
 
-    // Save current page information to memory and localStorage
-    async savePageInfo() {
+    // Internal save method (wrapped by Controller)
+    async _savePageInfo(signal) {
+        // Check if operation was aborted
+        if (signal?.aborted) {
+            throw new DOMException('Save operation aborted', 'AbortError');
+        }
+
+        if (!this.dbInitialized) {
+            console.warn('IndexedDB not initialized, cannot save');
+            return false;
+        }
+
         try {
             const title = document.title;
             const url = window.location.href;
@@ -171,14 +363,25 @@ class pageMemory {
             const savedElements = this.getElementsToSave();
 
             this.setPreviousPageInfo(title, url, dom, savedElements);
+            
             const data = {
-                url: url,
-                data: savedElements
+                title,
+                dom,
+                savedElements
             };
-            localStorage.setItem(this.storageKey, JSON.stringify(data));
-            this.execEvents('onSaveMemory', data);
+
+            // Check abort signal before saving
+            if (signal?.aborted) {
+                throw new DOMException('Save operation aborted', 'AbortError');
+            }
+
+            await this.db.save(url, data);
+            this.execEvents('onSaveMemory', { url, data });
             return true;
         } catch (error) {
+            if (error.name === 'AbortError') {
+                throw error; // Re-throw abort errors
+            }
             console.error('Error saving page info:', error);
             return false;
         }
@@ -242,61 +445,100 @@ class pageMemory {
         return Info;
     }
 
-    // Restore saved page state from localStorage
-    restorePageInfo() {
+    // Internal restore method (wrapped by Controller)
+    async _restorePageInfo(signal) {
+        // Check if operation was aborted
+        if (signal?.aborted) {
+            throw new DOMException('Restore operation aborted', 'AbortError');
+        }
+
+        if (!this.dbInitialized) {
+            console.warn('IndexedDB not initialized, cannot restore');
+            this.execEvents('onMemoryIsEmpty');
+            return false;
+        }
+
         try {
-            const savedData = localStorage.getItem(this.storageKey);
-            if (!savedData) {
+            const currentUrl = window.location.href;
+            
+            // Check abort signal before reading
+            if (signal?.aborted) {
+                throw new DOMException('Restore operation aborted', 'AbortError');
+            }
+
+            const savedRecord = await this.db.get(currentUrl);
+            
+            if (!savedRecord || !savedRecord.data) {
                 this.execEvents('onMemoryIsEmpty');
                 return false;
-            };
-
-            const parsedData = JSON.parse(savedData);
-
-            // Only restore if we're on the same page
-            if (parsedData.url === window.location.href) {
-                this.restoreElements(parsedData.data);
-                this.execEvents('onRestoreSucess', parsedData);
-                return true;
             }
-            this.execEvents('onRestoreError', parsedData);
-            return false;
+
+            // Check abort signal before restoring
+            if (signal?.aborted) {
+                throw new DOMException('Restore operation aborted', 'AbortError');
+            }
+
+            // Restore the elements
+            this.restoreElements(savedRecord.data.savedElements);
+            this.execEvents('onRestoreSucess', savedRecord);
+            return true;
         } catch (error) {
+            if (error.name === 'AbortError') {
+                throw error; // Re-throw abort errors
+            }
             console.error('Error restoring page info:', error);
+            this.execEvents('onRestoreError', error);
             return false;
         }
     }
 
     // Restore individual elements to their saved state
     restoreElements(savedElements) {
+        if (!savedElements || !Array.isArray(savedElements)) {
+            console.warn('Invalid savedElements provided to restoreElements');
+            return;
+        }
+
         savedElements.forEach(savedElement => {
             try {
-                let element = document.querySelector(savedElement.identifier);
-                if (!element || !element.hasAttribute('save')) return;
-                if (element) {
-                    let changed = false;
-                    // Restore attributes
+                const element = document.querySelector(savedElement.identifier);
+                if (!element) return;
+                
+                // Check if element still has save attribute (or data-save)
+                if (!element.hasAttribute('save') && !element.hasAttribute('data-save')) return;
+
+                let changed = false;
+
+                // Restore attributes
+                if (savedElement.attributes && Array.isArray(savedElement.attributes)) {
                     savedElement.attributes.forEach(attr => {
-                        let currentValue = element.getAttribute(attr.name);
+                        const currentValue = element.getAttribute(attr.name);
                         if (currentValue !== attr.value) {
                             changed = true;
                             element.setAttribute(attr.name, attr.value);
                         }
                     });
+                }
 
-                    const Config = this.getElementChangeConfig(element)
-                    if (Config.changeField && savedElement[Config.changeField] !== element[Config.changeField]) {
+                // Restore element-specific properties (value, checked, selectedIndex, etc.)
+                const Config = this.getElementChangeConfig(element);
+                if (Config.changeField && savedElement[Config.changeField] !== undefined) {
+                    if (element[Config.changeField] !== savedElement[Config.changeField]) {
                         changed = true;
                         element[Config.changeField] = savedElement[Config.changeField];
                     }
+                }
 
+                // Trigger events if element changed
+                if (changed && Config.eventName) {
                     this.invokeElementTrigger(element, Config.eventName);
+                }
 
-                    if (element.hasAttribute('customTrigger')) {
-                        const trigger = element.getAttribute('customTrigger');
-                        if (window[trigger]) {
-                            window[trigger](element);
-                        }
+                // Execute custom trigger if defined
+                if (element.hasAttribute('customTrigger')) {
+                    const trigger = element.getAttribute('customTrigger');
+                    if (typeof window[trigger] === 'function') {
+                        window[trigger](element);
                     }
                 }
             } catch (error) {
@@ -433,30 +675,49 @@ class pageMemory {
     }
 
     async reset() {
-        this.observers.forEach(observer => observer.Destroy());
+        // Destroy all observers
+        this.observers.forEach(observer => {
+            if (observer && typeof observer.Destroy === 'function') {
+                observer.Destroy();
+            }
+        });
         this.observers = [];
-        this.cleanMemory();
+        
+        // Clean memory
+        await this.cleanMemory();
     }
 
     // Clean up event listeners and intervals
-    destroy() {
-        this.reset().then(() => {
-            Object.keys(this).forEach(key => {
+    async destroy() {
+        await this.reset();
+        
+        // Abort any running Controller operations
+        if (this.savePageInfo.Controller) {
+            this.savePageInfo.Controller.abort();
+        }
+        if (this.restorePageInfo.Controller) {
+            this.restorePageInfo.Controller.abort();
+        }
+
+        // Close IndexedDB connection
+        if (this.db) {
+            this.db.close();
+        }
+
+        // Clean up properties
+        Object.keys(this).forEach(key => {
+            try {
+                this[key] = undefined;
+            } catch (error) {
+                console.error('Error clearing property:', key, error);
+            } finally {
                 try {
-                    this[key] = undefined
+                    delete this[key];
                 } catch (error) {
-                    console.error(error)
+                    console.error('Error deleting property:', key, error);
                 }
-                finally {
-                    try {
-                        delete this[key]
-                    } catch (error) {
-                        console.error(error)
-                    }
-                }
-            })
-            delete this
-        })
+            }
+        });
     }
 }
 
