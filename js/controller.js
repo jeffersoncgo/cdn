@@ -34,7 +34,9 @@ class Controller {
 
     return new Promise((resolve, reject) => {
       // Check the intervalbetween runs here
+      // if we are within the interval, resolve immediately so the returned Promise doesn't hang
       if (this._lastRun && Date.now() - this._lastRun < this.intervalBetweenRunsMs) {
+        resolve();
         return;
       }
       this._resolve = resolve;
@@ -84,8 +86,22 @@ class Controller {
     this.controller = null;
   }
   
-  static wrap(fn, options) {
-    const controller = new Controller(fn, options?.abortBeforeRun, options?.delayMs, options?.intervalBetweenRunsMs);
+  static wrap(fn, abortBeforeRunOrOptions, startDelayMs, intervalBetweenRunsMs) {
+    // Backwards-compatible behavior:
+    // - If second parameter is an object, treat it as options: { abortBeforeRun, delayMs, intervalBetweenRunsMs }
+    // - Otherwise treat parameters as positional: (fn, abortBeforeRun, startDelayMs, intervalBetweenRunsMs)
+    let opts;
+    if (abortBeforeRunOrOptions && typeof abortBeforeRunOrOptions === 'object') {
+      opts = abortBeforeRunOrOptions;
+    } else {
+      opts = {
+        abortBeforeRun: abortBeforeRunOrOptions,
+        delayMs: startDelayMs,
+        intervalBetweenRunsMs: intervalBetweenRunsMs
+      };
+    }
+
+    const controller = new Controller(fn, opts?.abortBeforeRun, opts?.delayMs, opts?.intervalBetweenRunsMs);
     const bound = controller.exec.bind(controller);
     bound.Controller = controller;
     return bound;
