@@ -253,16 +253,8 @@ class pageMemory {
 
         // Wrap methods with Controller for debouncing and preventing concurrent runs
         // Increased delays to prevent browser freezing
-        this.savePageInfo = Controller.wrap(this._savePageInfo.bind(this), {
-            abortBeforeRun: true,
-            delayMs: 1000, // 1 second debounce - waits for user to stop interacting
-            intervalBetweenRunsMs: 2000 // Minimum 2 seconds between actual saves
-        });
-
-        this.restorePageInfo = Controller.wrap(this._restorePageInfo.bind(this), {
-            abortBeforeRun: true,
-            delayMs: 100 // 100ms debounce for restore operations
-        });
+        this.savePageInfo = Controller.wrap(this._savePageInfo.bind(this), true, 100, 2000);
+        this.restorePageInfo = Controller.wrap(this._restorePageInfo.bind(this), true, 100);
 
         this.addEvent = JCGWeb.Functions.addEvent;
         this.deleteEvent = JCGWeb.Functions.deleteEvent;
@@ -270,6 +262,9 @@ class pageMemory {
         this.execEvents = JCGWeb.Functions.execEvents;
 
         this.observers = [];
+
+        this.blobCache = new Map();          // blobUrl -> { base64, signature }
+        this.blobSignatureCache = new Map(); // signature -> base64 (when blobUrl rotates)
     }
 
     async init() {
@@ -446,21 +441,36 @@ class pageMemory {
             const dom = document.documentElement.outerHTML;
             const savedElements = this.getElementsToSave();
 
+
+
             // Process Blob URLs and convert to Base64 for persistence
             for (const elementInfo of savedElements) {
                 if (elementInfo.hasBlobUrl && elementInfo.blobUrl) {
                     try {
-                        const blob = await this.blobUrlToBlob(elementInfo.blobUrl);
-                        if (blob) {
-                            elementInfo.blobData = await this.blobToBase64(blob);
-                            if (this.debug) {
-                                console.log(`[PageMemory] Converted Blob URL to Base64 (${blob.size} bytes)`);
+                        // 1) Try exact blob URL hit
+                        const cachedByUrl = this.blobCache.get(elementInfo.blobUrl);
+                        if (cachedByUrl) {
+                            elementInfo.blobData = cachedByUrl.base64;
+                            elementInfo.blobSignature = cachedByUrl.signature;
+                        } else {
+                            const blob = await this.blobUrlToBlob(elementInfo.blobUrl);
+                            if (blob) {
+                                const signature = `${blob.type}-${blob.size}`;
+                                // 2) If the URL changed but the payload (size/type) is the same, reuse the base64
+                                const cachedBySig = this.blobSignatureCache.get(signature);
+                                const base64 = cachedBySig || await this.blobToBase64(blob);
+
+                                elementInfo.blobData = base64;
+                                elementInfo.blobSignature = signature;
+
+                                this.blobCache.set(elementInfo.blobUrl, { base64, signature });
+                                this.blobSignatureCache.set(signature, base64);
                             }
                         }
                     } catch (error) {
                         console.warn('Failed to process Blob URL:', error);
                     }
-                    // Remove temporary properties
+                    // Keep temporary fields out of the stored payload
                     delete elementInfo.hasBlobUrl;
                     delete elementInfo.blobUrl;
                 }
@@ -886,6 +896,8 @@ class pageMemory {
                 }
             }
         });
+        this.blobCache.clear()
+        this.blobSignatureCache.clear();
     }
 }
 
