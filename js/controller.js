@@ -17,11 +17,6 @@ class Controller {
 
     this._resolve = null;
     this._reject = null;
-
-    this.addEvent = JCGWeb.Functions.addEvent;
-    this.deleteEvent = JCGWeb.Functions.deleteEvent;
-    this.clearEvents = JCGWeb.Functions.clearEvents;
-    this.execEvents = JCGWeb.Functions.execEvents;
   }
 
   exec(...params) {
@@ -105,6 +100,32 @@ class Controller {
     const bound = controller.exec.bind(controller);
     bound.Controller = controller;
     return bound;
+  }
+
+  addEvent(event, callback) {
+    this.events[event].push(callback);
+    return callback;
+  }
+
+  deleteEvent(event, callback) {
+    const index = this.events[event].indexOf(callback);
+    if (index !== -1) {
+      this.events[event].splice(index, 1);
+    }
+  }
+
+  clearEvents(event) {
+    this.events[event] = [];
+  }
+
+  execEvents(event, ...params) {
+    for (const callback of this.events[event]) {
+      try {
+        callback(...params);
+      } catch (error) {
+        console.error(error);
+      }
+    }
   }
 }
 
