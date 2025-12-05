@@ -289,13 +289,6 @@ class pageMemory {
         }, (error) => {
             this.execEvents('onDBError', error);
         });
-    }
-    
-
-    async _init() {
-        console.log('pageMemory initialized');
-        
-        // Initialize IndexedDB
         try {
             await this.db.init();
             this.dbInitialized = true;
@@ -303,6 +296,11 @@ class pageMemory {
             console.error('Failed to initialize IndexedDB:', error);
             this.dbInitialized = false;
         }
+    }
+    
+
+    async _init() {
+        console.log('pageMemory initialized');
         
         this.setOriginalPageInfo();
         // this.startAutoSave();
