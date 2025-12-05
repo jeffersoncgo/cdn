@@ -7,11 +7,13 @@ if (typeof module != 'undefined') {
  * Helper class to manage IndexedDB operations for pageMemory
  */
 class PageMemoryDB {
-    constructor(dbName = 'pageMemoryDB', storeName = 'pageData', version = 1) {
+    constructor(dbName = 'pageMemoryDB', storeName = 'pageData', version = 1, onSucess = null, onError = null) {
         this.dbName = dbName;
         this.storeName = storeName;
         this.version = version;
         this.db = null;
+        this.onSucess = onSucess;
+        this.onError = onError;
     }
 
     /**
@@ -23,6 +25,7 @@ class PageMemoryDB {
 
             request.onerror = () => {
                 console.error('IndexedDB error:', request.error);
+                if (this.onError) this.onError(request.error);
                 reject(request.error);
             };
 
@@ -43,9 +46,12 @@ class PageMemoryDB {
                     };
                     deleteRequest.onerror = () => {
                         console.error('Failed to delete database:', deleteRequest.error);
+                        if (this.onError) this.onError(deleteRequest.error);
                         reject(deleteRequest.error);
                     };
                 } else {
+                    console.log('IndexedDB initialized successfully');
+                    if (this.onSucess) this.onSucess(this.db);
                     resolve(this.db);
                 }
             };
@@ -229,10 +235,6 @@ class pageMemory {
             "translate"         // i18n behavior
         ];
 
-        // Initialize IndexedDB
-        this.db = new PageMemoryDB('pageMemoryDB', 'pageData', 1);
-        this.dbInitialized = false;
-
         // Initialize storage key and auto-save interval
         this.storageKey = 'pageMemoryData';
         this.autoSaveInterval = null;
@@ -243,6 +245,8 @@ class pageMemory {
             onRestoreSucess: [],
             onRestoreError: [],
             onMemoryIsEmpty: [],
+            onDBSuccess: [],
+            onDBError: []
         };
 
         // Performance monitoring
@@ -265,9 +269,30 @@ class pageMemory {
 
         this.blobCache = new Map();          // blobUrl -> { base64, signature }
         this.blobSignatureCache = new Map(); // signature -> base64 (when blobUrl rotates)
+
+        // Uses addEvent to add a onDBSuccess that sets the dbInitialized flag
+        this.addEvent('onDBSuccess', () => { this.dbInitialized = true });
+        this.addEvent('onDBSuccess', () => { this._init(); });
+
+
+        this.addEvent('onDBError', (error) => {
+            console.error('pageMemory IndexedDB initialization error:', error);
+            this.dbInitialized = false;
+        });
+
     }
 
     async init() {
+        // Initialize IndexedDB, we will execute the success/error callbacks there using the execEvents method
+        this.db = new PageMemoryDB('pageMemoryDB', 'pageData', 1, () => {
+            this.execEvents('onDBSuccess');
+        }, (error) => {
+            this.execEvents('onDBError', error);
+        });
+    }
+    
+
+    async _init() {
         console.log('pageMemory initialized');
         
         // Initialize IndexedDB
