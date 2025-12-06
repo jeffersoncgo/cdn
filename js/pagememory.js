@@ -260,11 +260,6 @@ class pageMemory {
         this.savePageInfo = Controller.wrap(this._savePageInfo.bind(this), true, 100, 2000);
         this.restorePageInfo = Controller.wrap(this._restorePageInfo.bind(this), true, 100);
 
-        this.addEvent = JCGWeb.Functions.addEvent;
-        this.deleteEvent = JCGWeb.Functions.deleteEvent;
-        this.clearEvents = JCGWeb.Functions.clearEvents;
-        this.execEvents = JCGWeb.Functions.execEvents;
-
         this.observers = [];
 
         this.blobCache = new Map();          // blobUrl -> { base64, signature }
@@ -708,8 +703,6 @@ class pageMemory {
         });
     }
 
-    getElementIdentifier = JCGWeb.Functions.getUniqueSelector; // Get unique selector for the element
-
     findStoredElementInfo = (identifier) => {
         const savedElements = this.getPreviousPageInfo().SavedElements;
         if (!savedElements) return null;
@@ -749,7 +742,7 @@ class pageMemory {
             tagName: element.tagName,
             id: element.id,
             classList: Array.from(element.classList),
-            identifier: this.getElementIdentifier(element),
+            identifier: this.getUniqueSelector(element),
             attributes: Array.from(element.attributes).map(attr => ({
                 name: attr.name,
                 value: attr.value
@@ -868,6 +861,104 @@ class pageMemory {
         if (enabled) {
             console.log('[PageMemory] Debug enabled. Current stats:', this.getStats());
         }
+    }
+
+    /**
+     * Add an event listener to the internal events system
+     * @param {string} event - The event name
+     * @param {Function} callback - The callback function to execute
+     */
+    addEvent(event, callback) {
+        if (!this.events[event]) {
+            this.events[event] = [];
+        }
+        this.events[event].push(callback);
+    }
+
+    /**
+     * Delete an event listener from the internal events system
+     * @param {string} event - The event name
+     * @param {Function} callback - The callback function to remove
+     */
+    deleteEvent(event, callback) {
+        if (!this.events[event]) return;
+        const index = this.events[event].indexOf(callback);
+        if (index !== -1) {
+            this.events[event].splice(index, 1);
+        }
+    }
+
+    /**
+     * Clear all listeners for a specific event
+     * @param {string} event - The event name to clear
+     */
+    clearEvents(event) {
+        if (this.events[event]) {
+            this.events[event] = [];
+        }
+    }
+
+    /**
+     * Execute all callbacks for a specific event
+     * @param {string} event - The event name
+     * @param {...any} params - Parameters to pass to the callbacks
+     */
+    execEvents(event, ...params) {
+        if (!this.events[event]) return;
+        for (const callback of this.events[event]) {
+            try {
+                callback(...params);
+            } catch (error) {
+                console.error('Error executing event:', event, error);
+            }
+        }
+    }
+
+    /**
+     * Get a unique selector for an element
+     * @param {Element} element - The DOM element
+     * @returns {string} A unique CSS selector for the element
+     */
+    getUniqueSelector(element) {
+        const findIndexOnParent = (parent, child) => {
+            if (!parent || !child) return -1;
+            if (parent.children.length === 0) return -1;
+            if (parent.children.length === 1) return -1;
+            return Array.from(parent.children).indexOf(child);
+        };
+
+        if (!element) return '';
+        if (element.id) return `#${element.id}`;
+
+        let selector = '';
+        const path = [];
+        
+        while (element) {
+            const tag = element.tagName.toLowerCase();
+            let currentSelector = tag;
+            
+            // Add class names if they exist
+            if (element.classList.length > 0) {
+                const classNames = Array.from(element.classList).filter(name => name.trim() !== '');
+                if (classNames.length > 0) {
+                    currentSelector += `.${classNames.join('.')}`;
+                }
+            }
+            
+            // For elements with parent, add their position among siblings
+            if (element.parentElement) {
+                const index = findIndexOnParent(element.parentElement, element);
+                if (index !== -1) {
+                    currentSelector += `:nth-child(${index + 1})`;
+                }
+            }
+            
+            path.unshift(currentSelector);
+            element = element.parentElement;
+        }
+
+        selector = path.join(' > ');
+        return selector;
     }
 
     async reset() {
