@@ -1,5 +1,7 @@
 # JCGWeb CDN — Auditoria: erros, correções sugeridas e melhorias
 
+> Plano de correções em andamento (fases, regra de não perder funcionalidade, decisões): [`CoverMaker/docs/PLANO-DE-CORRECOES.md`](https://github.com/jeffersoncgo/CoverMaker/blob/main/docs/PLANO-DE-CORRECOES.md).
+
 > Revisão do código em `aa68604`. Cada item indica **como foi verificado**:
 > 🧪 reproduzido (Node 22 ou Chromium/Playwright) · 🔎 leitura de código.
 > Severidade: **Alta** (comportamento errado/perda de dados/segurança), **Média** (falha em casos comuns),
