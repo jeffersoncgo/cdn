@@ -120,11 +120,11 @@ if (typeof Controller !== 'undefined') {
 
   demoAsyncFunc = Controller.wrap(demoAsyncFunc);
 
-  demoAsyncFunc.addEvent("onDone", (result, query) => controllerLogOutput.innerHTML = `SUCCESS: ${result} (Original: ${query})<br>` + controllerLogOutput.innerHTML)
-  demoAsyncFunc.addEvent("onError", (error) => controllerLogOutput.innerHTML = `ERROR: ${error.message}<br>` + controllerLogOutput.innerHTML)
-  demoAsyncFunc.addEvent("onAbort", (query) => controllerLogOutput.innerHTML = `ABORTED by new call (Original: ${query})<br>` + controllerLogOutput.innerHTML)
+  demoAsyncFunc.Controller.addEvent("onDone", (result, query) => controllerLogOutput.innerHTML = `SUCCESS: ${result} (Original: ${query})<br>` + controllerLogOutput.innerHTML)
+  demoAsyncFunc.Controller.addEvent("onError", (error) => controllerLogOutput.innerHTML = `ERROR: ${error.message}<br>` + controllerLogOutput.innerHTML)
+  demoAsyncFunc.Controller.addEvent("onAbort", (query) => controllerLogOutput.innerHTML = `ABORTED by new call (Original: ${query})<br>` + controllerLogOutput.innerHTML)
 
-  demoAsyncFunc.startDelayMs = 0
+  demoAsyncFunc.Controller.startDelayMs = 0
 
 
   window.demoControlledFetch = (query) => {
@@ -146,20 +146,18 @@ if (typeof Controller !== 'undefined') {
 
   const searchResult = document.getElementById('searchResult');
 
-  SearchFunction.addEvent("onDone", (result) => {
+  SearchFunction.Controller.addEvent("onDone", (result) => {
     TreeListManager.TreeHTML(result).then(() => {
       searchResult.innerHTML = ''; // Clear previous
       searchResult.appendChild(TreeListManager.document);
     });
   });
 
-  SearchFunction.addEvent("onError", (error) => {
+  SearchFunction.Controller.addEvent("onError", (error) => {
     searchResult.innerHTML = `ERROR: ${error.message}<br>`;
   });
 
-  SearchFunction.startDelayMs = 300;
-  SearchFunction = SearchFunction.exec.bind(SearchFunction);
-  SearchFunction.Controller = SearchController;
+  SearchFunction.Controller.startDelayMs = 300;
 
 
   // 🎯 Trigger search as user types or changes checkboxes

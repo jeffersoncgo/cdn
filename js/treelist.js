@@ -66,7 +66,7 @@ class TreeListCreator {
             if (isComplex) {
               let details = document.createElement('details');
               let summary = document.createElement('summary');
-              summary.innerHTML = Item.Key || element;
+              summary.textContent = Item.Key || element;
               details.appendChild(summary);
               target = details;
             } else
@@ -82,7 +82,7 @@ class TreeListCreator {
           for (let key in data) {
             let details = document.createElement('details');
             let summary = document.createElement('summary');
-            summary.innerHTML = key;
+            summary.textContent = key;
             details.appendChild(summary);
             this.createDetails(data[key], details).then(() => {
               if (this.Opened)

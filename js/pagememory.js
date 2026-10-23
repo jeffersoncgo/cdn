@@ -188,7 +188,16 @@ class PageMemoryDB {
 
 
 class pageMemory {
-    constructor() {
+    /**
+     * @param {Object} [options]
+     * @param {string[]} [options.listeners] DOM events that trigger a save (default: input, change, click, submit, toggle)
+     * @param {number} [options.saveDelayMs=100] Debounce before saving
+     * @param {number} [options.saveIntervalMs=2000] Minimum time between saves (the last change is still saved)
+     * @param {number} [options.restoreDelayMs=100] Delay before restoring
+     * @param {boolean} [options.saveDom=false] Also store document.documentElement.outerHTML in each record (field
+     *   `dom`). Nothing reads it back; it was always saved before 2026-10-23 (~340 KB per save in CoverMaker).
+     */
+    constructor(options = {}) {
         // Storage for previous page information
         this.previousPageInfo = {
             Title: null,
@@ -208,7 +217,7 @@ class pageMemory {
         // Reduced event list to avoid duplicates and improve performance
         // input covers most text changes, change covers selects/checkboxes
         // click covers buttons/links, submit covers forms
-        this.Listeners = [
+        this.Listeners = options.listeners ? [...options.listeners] : [
             'input',    // Covers text input, contenteditable changes
             'change',   // Covers select, checkbox, radio changes
             'click',    // Covers button clicks, link clicks
@@ -232,7 +241,8 @@ class pageMemory {
             "dir",              // Text direction
             "lang",             // Language context
             "title",            // Tooltip – possibly dynamic
-            "translate"         // i18n behavior
+            "translate",        // i18n behavior
+            "added-trigger"     // Internal marker set by pageMemory itself
         ];
 
         // Initialize storage key and auto-save interval
@@ -255,10 +265,20 @@ class pageMemory {
         this.lastSaveTime = null;
         this.saveAttempts = 0; // Tracks attempted saves (including debounced/throttled)
 
-        // Wrap methods with Controller for debouncing and preventing concurrent runs
-        // Increased delays to prevent browser freezing
-        this.savePageInfo = Controller.wrap(this._savePageInfo.bind(this), true, 100, 2000);
-        this.restorePageInfo = Controller.wrap(this._restorePageInfo.bind(this), true, 100);
+        // Saving waits until init() has restored the saved state: a save before that (an input event, or a call
+        // from the page) would overwrite the stored record with the page's defaults
+        this.canSave = false;
+
+
+        // Wrap methods with Controller for debouncing and preventing concurrent runs.
+        // Callers (event listeners, observers) pass their own arguments; the Controller appends the
+        // AbortSignal as the last one, so that is the one forwarded.
+        const saveDelayMs = options.saveDelayMs ?? 100;
+        const saveIntervalMs = options.saveIntervalMs ?? 2000;
+        const restoreDelayMs = options.restoreDelayMs ?? 100;
+        this.saveDom = options.saveDom === true;
+        this.savePageInfo = Controller.wrap((...args) => this._savePageInfo(args[args.length - 1]), true, saveDelayMs, saveIntervalMs);
+        this.restorePageInfo = Controller.wrap((...args) => this._restorePageInfo(args[args.length - 1]), true, restoreDelayMs);
 
         this.observers = [];
 
@@ -299,7 +319,11 @@ class pageMemory {
         
         this.setOriginalPageInfo();
         // this.startAutoSave();
-        await this.restorePageInfo();
+        try {
+            await this.restorePageInfo();
+        } finally {
+            this.canSave = true;
+        }
     }
 
 
@@ -373,8 +397,12 @@ class pageMemory {
     }
 
     // Get elements marked with 'save' attribute
+    getSaveTargets() {
+        return [...document.querySelectorAll('[save]'), ...document.querySelectorAll('[data-save]')];
+    }
+
     getElementsToSave() {
-        return [...document.querySelectorAll('[save]'), ...document.querySelectorAll('[data-save]')].map(this.getElementInfo);
+        return this.getSaveTargets().map(this.getElementInfo);
     }
 
     /**
@@ -382,19 +410,45 @@ class pageMemory {
      * @param {string} blobUrl - The blob: URL to convert
      * @returns {Promise<Blob|null>}
      */
-    async blobUrlToBlob(blobUrl) {
+    async blobUrlToBlob(blobUrl, fallbackElement = null) {
         if (!blobUrl || !blobUrl.startsWith('blob:')) {
             return null;
         }
         
         try {
             const response = await fetch(blobUrl);
-            if (!response.ok) return null;
-            return await response.blob();
+            if (response.ok) return await response.blob();
         } catch (error) {
-            console.warn('Failed to convert Blob URL to Blob:', error);
-            return null;
+            // Ignore here; we try the fallback below
         }
+
+        // If the blob URL was revoked, try to pull pixels from the existing element
+        if (fallbackElement) {
+            const blobFromElement = await this.imageElementToBlob(fallbackElement);
+            if (blobFromElement) return blobFromElement;
+        }
+
+        console.warn('Failed to convert Blob URL to Blob: fetch failed and no usable fallback');
+        return null;
+    }
+
+    // Fallback when a blob URL has been revoked but the image is still rendered
+    async imageElementToBlob(element) {
+        if (!(element instanceof HTMLImageElement)) return null;
+        if (!element.complete || element.naturalWidth === 0 || element.naturalHeight === 0) return null;
+
+        return new Promise(resolve => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = element.naturalWidth;
+                canvas.height = element.naturalHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(element, 0, 0);
+                canvas.toBlob(blob => resolve(blob), 'image/png');
+            } catch (err) {
+                resolve(null);
+            }
+        });
     }
 
     /**
@@ -402,6 +456,30 @@ class pageMemory {
      * @param {Blob} blob - The blob to convert
      * @returns {Promise<string>}
      */
+    // Identifies a blob by its content. Type + size alone collide (two different images with the same byte
+    // size), which made one slot image be saved over another.
+    async blobSignature(blob) {
+        const bytes = new Uint8Array(await blob.arrayBuffer());
+        let digest = '';
+        try {
+            if (globalThis.crypto?.subtle) {
+                const hash = await crypto.subtle.digest('SHA-256', bytes);
+                digest = Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, '0')).join('');
+            }
+        } catch (error) {
+            // crypto.subtle only exists in secure contexts: use the FNV-1a fallback below
+        }
+        if (!digest) {
+            let h = 2166136261;
+            for (let i = 0; i < bytes.length; i++) {
+                h ^= bytes[i];
+                h = Math.imul(h, 16777619) >>> 0;
+            }
+            digest = h.toString(16);
+        }
+        return `${blob.type}-${blob.size}-${digest}`;
+    }
+
     async blobToBase64(blob) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -431,7 +509,8 @@ class pageMemory {
     }
 
     // Internal save method (wrapped by Controller)
-    async _savePageInfo(signal) {
+    async _savePageInfo(signal, ...params) {
+        if(!this.canSave) return false; // Prevent saving if not allowed yet
         this.saveAttempts++;
         
         // Check if operation was aborted
@@ -456,25 +535,36 @@ class pageMemory {
 
             const title = document.title;
             const url = window.location.href;
-            const dom = document.documentElement.outerHTML;
-            const savedElements = this.getElementsToSave();
-
+            const dom = this.saveDom ? document.documentElement.outerHTML : undefined;
+            const saveTargets = this.getSaveTargets();
+            const savedElements = saveTargets.map(this.getElementInfo);
 
 
             // Process Blob URLs and convert to Base64 for persistence
-            for (const elementInfo of savedElements) {
+            for (const [index, elementInfo] of savedElements.entries()) {
+                // A newer save started (the page changed): stop instead of reading images that may be gone
+                if (signal?.aborted) {
+                    throw new DOMException('Save operation aborted', 'AbortError');
+                }
                 if (elementInfo.hasBlobUrl && elementInfo.blobUrl) {
                     try {
+                        const element = saveTargets[index];
+                        // The image left the page or changed while this save ran: its Blob URL may already be revoked,
+                        // so it is not fetched (that only logs ERR_FILE_NOT_FOUND). The change schedules a newer save.
+                        const changedMeanwhile = !element.isConnected || element.src !== elementInfo.blobUrl;
+
                         // 1) Try exact blob URL hit
                         const cachedByUrl = this.blobCache.get(elementInfo.blobUrl);
                         if (cachedByUrl) {
                             elementInfo.blobData = cachedByUrl.base64;
                             elementInfo.blobSignature = cachedByUrl.signature;
                         } else {
-                            const blob = await this.blobUrlToBlob(elementInfo.blobUrl);
+                            // 2) Try to fetch the blob or fall back to drawing from the rendered image
+                            // We prioritize this over stored info to ensure we capture changes
+                            const blob = changedMeanwhile ? null : await this.blobUrlToBlob(elementInfo.blobUrl, element);
+                            
                             if (blob) {
-                                const signature = `${blob.type}-${blob.size}`;
-                                // 2) If the URL changed but the payload (size/type) is the same, reuse the base64
+                                const signature = await this.blobSignature(blob);
                                 const cachedBySig = this.blobSignatureCache.get(signature);
                                 const base64 = cachedBySig || await this.blobToBase64(blob);
 
@@ -483,6 +573,16 @@ class pageMemory {
 
                                 this.blobCache.set(elementInfo.blobUrl, { base64, signature });
                                 this.blobSignatureCache.set(signature, base64);
+                            } else {
+                                // 3) Fallback: Try previously saved info for the same element
+                                // Only use this if we couldn't get the current blob (e.g. revoked and not rendered)
+                                const storedInfo = this.findStoredElementInfo(elementInfo.identifier);
+                                if (storedInfo?.blobData && storedInfo?.blobSignature) {
+                                    elementInfo.blobData = storedInfo.blobData;
+                                    elementInfo.blobSignature = storedInfo.blobSignature;
+                                    this.blobCache.set(elementInfo.blobUrl, { base64: storedInfo.blobData, signature: storedInfo.blobSignature });
+                                    this.blobSignatureCache.set(storedInfo.blobSignature, storedInfo.blobData);
+                                }
                             }
                         }
                     } catch (error) {
@@ -494,18 +594,18 @@ class pageMemory {
                 }
             }
 
+            // Check abort signal before saving (and before this state becomes the "previous" one)
+            if (signal?.aborted) {
+                throw new DOMException('Save operation aborted', 'AbortError');
+            }
+
             this.setPreviousPageInfo(title, url, dom, savedElements);
             
             const data = {
                 title,
-                dom,
                 savedElements
             };
-
-            // Check abort signal before saving
-            if (signal?.aborted) {
-                throw new DOMException('Save operation aborted', 'AbortError');
-            }
+            if (this.saveDom) data.dom = dom;
 
             await this.db.save(url, data);
             
@@ -652,6 +752,7 @@ class pageMemory {
                 // Restore attributes
                 if (savedElement.attributes && Array.isArray(savedElement.attributes)) {
                     savedElement.attributes.forEach(attr => {
+                        if (this.shouldIgnoreAttribute(attr.name)) return;
                         const currentValue = element.getAttribute(attr.name);
                         if (currentValue !== attr.value) {
                             changed = true;
@@ -927,8 +1028,10 @@ class pageMemory {
             return Array.from(parent.children).indexOf(child);
         };
 
+        const escape = value => (typeof CSS !== 'undefined' && CSS.escape) ? CSS.escape(value) : value;
+
         if (!element) return '';
-        if (element.id) return `#${element.id}`;
+        if (element.id) return `#${escape(element.id)}`;
 
         let selector = '';
         const path = [];
@@ -941,7 +1044,7 @@ class pageMemory {
             if (element.classList.length > 0) {
                 const classNames = Array.from(element.classList).filter(name => name.trim() !== '');
                 if (classNames.length > 0) {
-                    currentSelector += `.${classNames.join('.')}`;
+                    currentSelector += `.${classNames.map(escape).join('.')}`;
                 }
             }
             
@@ -996,6 +1099,9 @@ class pageMemory {
             this.db.close();
         }
 
+        this.blobCache.clear();
+        this.blobSignatureCache.clear();
+
         // Clean up properties
         Object.keys(this).forEach(key => {
             try {
@@ -1010,8 +1116,6 @@ class pageMemory {
                 }
             }
         });
-        this.blobCache.clear()
-        this.blobSignatureCache.clear();
     }
 }
 

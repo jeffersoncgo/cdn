@@ -29,7 +29,7 @@ const Sorters = {
     try {
       let xValue = x.getAttribute('_sortValue');
       if (!xValue) {
-        xValue = Date.parse(x.innerText).getTime();
+        xValue = Date.parse(x.innerText);
         x.setAttribute('_sortValue', xValue);
       } else {
         xValue = parseFloat(xValue);
@@ -37,16 +37,19 @@ const Sorters = {
 
       let yValue = y.getAttribute('_sortValue');
       if (!yValue) {
-        yValue = Date.parse(y.innerText).getTime();
+        yValue = Date.parse(y.innerText);
         y.setAttribute('_sortValue', yValue);
       } else {
         yValue = parseFloat(yValue);
       }
 
+      if (Number.isNaN(xValue)) xValue = -Infinity;
+      if (Number.isNaN(yValue)) yValue = -Infinity;
+      // Same convention as Sorters.Default: Descending=true sorts from the biggest to the smallest
       if (xValue > yValue)
-        return Descending ? 1 : -1;
-      if (xValue < yValue)
         return Descending ? -1 : 1;
+      if (xValue < yValue)
+        return Descending ? 1 : -1;
       return 0;
     } catch {
       return 0;
@@ -70,10 +73,13 @@ const Sorters = {
         yValue = parseFloat(yValue);
       }
 
+      if (Number.isNaN(xValue)) xValue = -Infinity;
+      if (Number.isNaN(yValue)) yValue = -Infinity;
+      // Same convention as Sorters.Default: Descending=true sorts from the biggest to the smallest
       if (xValue > yValue)
-        return Descending ? 1 : -1;
-      if (xValue < yValue)
         return Descending ? -1 : 1;
+      if (xValue < yValue)
+        return Descending ? 1 : -1;
       return 0;
     } catch {
       return 0;
@@ -116,6 +122,7 @@ class TableSorter {
     this.SetSortConfig(this.SortConfig);
     this.SetupController();
     this.SetupObserver();
+    this.reIndex();
     this._isReady = true;
   }
 
@@ -169,8 +176,14 @@ class TableSorter {
       if(Array.isArray(this.Rows.Sorted[this.CurrentSortedField]))
         this.Rows.LastSorted = [...this.Rows.Sorted[this.CurrentSortedField]];
       
-      await this.FillOriginalRows();
-      await this.GenerateSortedData();
+      this.TableObserver.Stop();
+      try {
+        this.ClearSortCache();
+        await this.FillOriginalRows();
+        await this.GenerateSortedData();
+      } finally {
+        this.TableObserver.Start();
+      }
       this.UpdateFooter();
       
       if(this.rowsChanged()) {
@@ -190,19 +203,27 @@ class TableSorter {
     this.isIndexing = false;
   };
 
+  // Cell values are cached in the _sortValue attribute; drop them so edited cells sort by their new content
+  ClearSortCache = () => {
+    for (const cell of this.Table.querySelectorAll('[_sortValue]'))
+      cell.removeAttribute('_sortValue');
+  }
+
   UpdateHeader = () => {
     this.Header = {};
     this.Header.Row = this.Table.getElementsByTagName('thead')[0]?.getElementsByTagName('tr')[0];
+    this.Header.Cells = [];
     if (!this.Header.Row)
-      return; this.Header.Cells = [];
+      return;
     this.Header.Cells = this.Header.Row.getElementsByTagName('th');
   }
 
   UpdateFooter = () => {
     this.Footer = {};
     this.Footer.Row = this.Table.getElementsByTagName('tfoot')[0]?.getElementsByTagName('tr')[0];
+    this.Footer.Cells = [];
     if (!this.Footer.Row)
-      return; this.Footer.Cells = [];
+      return;
     this.Footer.Cells = [...this.hasFooter ? this.Footer.Row.getElementsByTagName('th') : []];
   }
 
@@ -228,8 +249,9 @@ class TableSorter {
     if (!this.SortConfig.Default)
       this.SortConfig.Default = this.DefaultSort_Vanilla;
   }
-  DefaultSort_Vanilla = (x, y) => {
-    return this.Dir == 'Descending' ? x.innerText.toLowerCase() < y.innerText.toLowerCase() : x.innerText.toLowerCase() > y.innerText.toLowerCase();
+  DefaultSort_Vanilla = (x, y, Descending = true) => {
+    const cmp = x.innerText.toLowerCase().localeCompare(y.innerText.toLowerCase(), undefined, { numeric: true });
+    return Descending ? -cmp : cmp;
   }
   CleanFieldClasses = () => {
     for (let index = 0; index < this.Header.Cells.length; index++) {
@@ -257,12 +279,16 @@ class TableSorter {
 
   ClearCollumnIcon = () => {
     for (let index = 0; index < this.Header.Cells.length; index++)
-      this.Header.Cells[index].innerText = this.Header.Cells[index].innerText.replace(this.SortIcons.Desc, '').replace(this.SortIcons.Asc, '');
+      this.Header.Cells[index].querySelectorAll('.tablesorter-icon').forEach(icon => icon.remove());
   }
 
   AddCollumnIcon = (Title, IsDescending) => {
     const Collumn = this.GetCollumByTitle(Title);
-    Collumn.innerText = Collumn.innerText + this.SortIcons[IsDescending ? 'Asc' : 'Desc'];
+    // The icon lives in its own span so the header keeps any markup it has
+    const icon = document.createElement('span');
+    icon.className = 'tablesorter-icon';
+    icon.textContent = this.SortIcons[IsDescending ? 'Asc' : 'Desc'];
+    Collumn.appendChild(icon);
   }
 
   GetCollumnIndex = Title => {
@@ -300,6 +326,9 @@ class TableSorter {
       this.ClearCollumnIcon();
       this.AddCollumnIcon(Field, IsDescending);
 
+      this.ClearSortCache();
+      await this.FillOriginalRows();
+      await this.GenerateSortedData();
       this.ApplySortToTable(Field, IsDescending);
     } finally {
       this.TableObserver.Start();
@@ -362,11 +391,14 @@ class TableSorter {
         factor = -1;
       }
 
+      let position = 0;
       for (let index = 0; index < rows.length; index++) {
         const row = rows[index];
         if (row.hasAttribute('_sortignore')) continue;
         
-        const sortedRow = sortedRows[order + factor * index];
+        const sortedRow = sortedRows[order + factor * position];
+        position++;
+        if (!sortedRow) continue;
         if (sortedRow === row) continue;
         
         row.parentNode.insertBefore(sortedRow, row);
