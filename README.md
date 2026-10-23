@@ -1,5 +1,9 @@
 # 🚀 README AI - cdn
 
+> 📚 **Verified technical docs (pt-BR):** [docs/DOCUMENTACAO.md](docs/DOCUMENTACAO.md) · [Code audit & known issues](docs/AUDITORIA.md)
+>
+> ⚠️ Several API examples further down this README were auto-generated and do not match the code (e.g. `JCGWeb.PageMemory.saveElementState`, `JCGWeb.PopupMessage.show`, `JCGWeb.ThemeControl.setTheme`, `JCGWeb.TreeList.render` do not exist), and the root `script.js` is the demo page script — do not include it in other pages. Use the docs above as the reference.
+
 This repository houses a collection of client-side JavaScript utilities and UI components designed to enhance web page interactivity and manage client-side state. It provides a modular toolkit for front-end development, offering functionalities ranging from core DOM manipulation and event handling to advanced UI elements like sortable tables, dynamic popup messages, theme control, and interactive tree structures. The project also includes utilities for managing asynchronous operations, sequential ID generation, and persisting simple page state using browser storage. Intended for web developers, this library facilitates the creation of dynamic and responsive web interfaces without relying on server-side frameworks for basic functionalities.
 
 ## 📋 Table of Contents
