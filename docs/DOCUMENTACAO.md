@@ -235,6 +235,8 @@ O que é salvo por elemento:
 - O elemento é localizado na restauração por um seletor CSS gerado (`#id` se houver, senão um caminho
   `tag.classes:nth-child()`); **dê `id` estável a todo elemento com `save`**.
 - Atributo `customTrigger="nomeDeFuncaoGlobal"`: após restaurar, chama `window[nome](elemento)`.
+- Nada é gravado antes de `init()` terminar a restauração (`canSave`); chamar `savePageInfo()` cedo é seguro.
+- Uma gravação nova aborta a anterior no meio (inclusive entre uma imagem e outra).
 - Cada gravação também guarda `document.documentElement.outerHTML` inteiro (campo `dom`), que não é usado na restauração.
 - Salvamentos são disparados pelos eventos `input/change/click/submit/toggle` (configurável em `listeners`) e por
   mutações de DOM nos elementos marcados, com debounce de 100 ms (`saveDelayMs`) e intervalo mínimo de 2 s

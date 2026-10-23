@@ -36,6 +36,8 @@
 | CDN-17 ◐ | Baixa | `common.js`, `object.js`, `fetchqueue.js`, `base.js` | `makeObjbyPath` não retorna; protótipos enumeráveis; `fetch` sem `res.ok`; mouse com coordenadas mistas |
 | CDN-18 | Baixa | `README.md` | API descrita não existe; sugere incluir o `script.js` da demo |
 | CDN-19 ✅ | Alta | `pagememory.js` | Imagens identificadas só por `tipo + tamanho`: duas imagens diferentes com o mesmo tamanho em bytes são gravadas como a mesma 🧪 |
+| CDN-20 ✅ | Alta | `pagememory.js` | `canSave` começa `true`: uma gravação antes do fim da restauração sobrescreve o estado salvo com o padrão da página 🧪 |
+| CDN-21 ✅ | Média | `pagememory.js` | Gravação superada continua lendo imagens (Blob URLs já revogadas → `ERR_FILE_NOT_FOUND`) e atualiza o "estado anterior" 🧪 |
 
 ---
 
@@ -351,6 +353,23 @@ depois de recarregar, um slot voltava com a imagem de outro (medido: slots 2 e 3
 Correção: `blobSignature(blob)` = `tipo-tamanho-SHA256(conteúdo)` (`crypto.subtle`; FNV-1a quando a página não é um
 contexto seguro). O custo é uma leitura do blob, que já acontecia para gerar o base64, e só para Blob URLs novas
 (as já vistas usam o `blobCache` por URL). Assinaturas antigas gravadas no IndexedDB continuam válidas como chave.
+
+### CDN-20 — Gravação antes da restauração (Alta) 🧪 — ✅ corrigido (2026-10-23)
+
+`_savePageInfo` só grava se `canSave`, mas o construtor já o deixava `true`. Entre o banco abrir e
+`restorePageInfo()` terminar (atraso configurável, 500 ms no CoverMaker), qualquer gravação — um `input`, um observador
+de mutação ou uma chamada da própria página — gravava o estado **padrão** da página por cima do salvo. Achado ao fazer o
+CoverMaker regravar o registro logo após o login (que acontece justamente nessa janela). Correção: `canSave = false` no
+construtor; `_init()` o libera no `finally` da restauração (também quando não há nada salvo ou a restauração falha).
+
+### CDN-21 — Gravação superada (Média) 🧪 — ✅ corrigido (2026-10-23)
+
+O `Controller` aborta a gravação anterior quando uma nova começa, mas `_savePageInfo` só olhava o `signal` no início e
+no fim: no meio, seguia convertendo imagens cujas Blob URLs a página já tinha revogado (o CoverMaker revoga ao trocar de
+projeto — 18 `ERR_FILE_NOT_FOUND` medidos ao abrir dois projetos da galeria em seguida) e chamava `setPreviousPageInfo`
+com o estado velho. Correção: o laço confere o `signal` a cada elemento; uma imagem que saiu da página ou mudou durante a
+gravação não é buscada (a mudança agenda uma gravação nova); `setPreviousPageInfo` só roda se a gravação não foi
+abortada. Novo `getSaveTargets()` (os elementos `[save]`), usado por `getElementsToSave()`.
 
 ---
 
