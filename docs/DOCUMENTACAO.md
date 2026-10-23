@@ -202,7 +202,9 @@ se.search(array, consulta, ordenacao = undefined, isLaxQuery = false)
   dos itens (não as referências originais).
 - `ordenacao`: `[{ fields: ['CommunityRating'], type: 'desc' }, …]` — critérios aplicados em ordem (desempate pelo
   seguinte). O array de entrada não é alterado.
-- Resultados são memorizados por identidade do array + JSON da consulta.
+- Resultados são memorizados por identidade do array + JSON da consulta e devolvidos como cópia. Alterou o array no
+  lugar? Chame `se.clearCache(array)` (ou `se.clearCache()` para tudo).
+- `'!='` casa itens em que **nenhum** dos campos indicados é igual a algum dos valores.
 
 ### 3.9 `pagememory.js` — `pageMemory` / `PageMemoryDB`
 
@@ -261,10 +263,12 @@ Outros métodos: `clearSavedMemory()`, `cleanMemory()`, `reset()`, `destroy()`, 
 
 - Clique no `<th>` alterna ascendente/descendente; classes CSS aplicadas: `cansortcollumn`, `collumnsorted`,
   `sorted_ascending`, `sorted_descending`; um ícone (`⤴`/`⤵`) é anexado ao texto do cabeçalho.
-- Comparadores: `(tdA, tdB, descending) => número`. Prontos em `Sorters.Default`, `Sorters.Number`, `Sorters.Date`.
-  O valor calculado é guardado no atributo `_sortValue` da célula.
+- Comparadores: `(tdA, tdB, descending) => número`; com `descending = true` devem ordenar do maior para o menor (é assim
+  que o componente os chama). Prontos em `Sorters.Default`, `Sorters.Number`, `Sorters.Date` (texto inválido vai para o fim).
+  O valor calculado é guardado no atributo `_sortValue` da célula e recalculado a cada ordenação (células editadas
+  ordenam pelo valor novo). O ícone fica num `<span class="tablesorter-icon">` dentro do `<th>`.
 - Linhas com `_sortignore` ficam fora da ordenação. Um `Observer` reordena quando o `tbody` muda.
-- Requer `<thead>` (sem ele o construtor lança erro).
+- Sem `<thead>` o componente apenas não cria cabeçalhos clicáveis.
 
 ### 3.11 `popupmessage.js`
 
@@ -273,8 +277,10 @@ PopuMessageManager.addMessage('Salvo!', 'Sucesso', 3000,
   onMessage, onClose, onShow, onMessageClick, onTitleClick);   // callbacks opcionais
 ```
 
-Mostra caixas empilhadas no canto inferior direito (`#messageHolder`). Mensagem e título são inseridos como **HTML**.
-Objetos não-string são convertidos com `JSON.stringify`.
+Mostra caixas empilhadas no canto inferior direito (`#messageHolder`) e retorna a instância `PopupMessage`.
+Mensagem e título são inseridos como **texto**; para renderizar HTML (comportamento antigo) passe `true` como 9º
+argumento (`allowHTML`) ou `triggers.allowHTML` no construtor. `onShow` dispara ao exibir e `onClose` ao fechar
+(clique no ×, tempo esgotado ou `close()`). Objetos não-string são convertidos com `JSON.stringify`.
 
 ### 3.12 `treelist.js`
 
@@ -284,14 +290,16 @@ container.appendChild(TreeListManager.document);   // o <div> renderizado
 TreeListManager.OpenAll(); TreeListManager.CloseAll();
 ```
 
-Renderiza objetos/arrays como `<details>/<summary>` aninhados e valores primitivos como `<li>`.
+Renderiza objetos/arrays como `<details>/<summary>` aninhados (chaves como texto) e valores primitivos como `<li>`.
 Com `Sanitize = true` (padrão), chaves contendo `/` ou `\` viram níveis (`"a/b"` → `a > b`).
 
 ### 3.13 `themeControl.js`
 
 Ao carregar, adiciona um botão (pincel) que abre uma barra fixa com: seletor de regra CSS, *slider* de deslocamento de
 cor, lista de temas salvos, salvar/excluir tema e inverter cores. Opera reescrevendo os valores de cor das regras dos
-`document.styleSheets` e dos estilos *inline*.
+`document.styleSheets` (inclusive dentro de `@media`/`@supports`) e dos estilos *inline*. Aceita cores `#rgb`,
+`#rrggbb`, `#rrggbbaa`, `rgb()`, `rgba()`, `hsl()`; cada componente é deslocado com volta em 0…255. Folhas de estilo de
+outros domínios são ignoradas.
 
 Armazenamento: `localStorage.themeCtrlThemes` (JSON `{nome: [{selector, property, value}]}`) e
 `localStorage.themeCtrlTheme` (tema ativo, reaplicado 100 ms após o carregamento).

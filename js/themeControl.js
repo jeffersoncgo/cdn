@@ -2,28 +2,26 @@ utils.AddStyle(utils.CurrentUrlToFile('themeControl.css'));
 var themeSliderControl = new Controller(shiftTheme.bind(this));
 themeSliderControl = themeSliderControl.exec.bind(themeSliderControl);
 
-let themeShifted = 1;
+let themeShifted = 0; // the slider starts at 0
 
 let themeCtrl_Themes = {};
 
-const fixColorAngle = angle =>  {
-  const negative = angle < 0;
-  angle = Math.abs(angle);
-  return negative && angle > 256 ? 256 - (angle % 256) : negative && angle < 256 ? 256 - angle : angle > 256 ? angle % 256 : angle;
-}
+// Wraps a shifted color component back into 0..255
+const fixColorAngle = angle => ((Math.round(angle) % 256) + 256) % 256;
 
 const isColorValue = value => /rgb|rgba|hsl|hsla|\#[0-9a-f]{3,6}/i.test(value); //check if the value is a color
 const rgbToHex = (r, g, b) => `#${componentToHex(r)}${componentToHex(g)}${componentToHex(b)}`;
 const rgbaToHex = (r, g, b, a) => `#${componentToHex(r)}${componentToHex(g)}${componentToHex(b)}${componentToHex(a * 255)}`;
-const componentToHex = c => (c.toString(16).padStart(2, '0')).toUpperCase();
-const isValidHex = color => /^#?([a-f\d]{3})/i.test(color);
+const componentToHex = c => (Math.max(0, Math.min(255, Math.round(c))).toString(16).padStart(2, '0')).toUpperCase();
+const isValidHex = color => /^#?([a-f\d]{3}|[a-f\d]{4}|[a-f\d]{6}|[a-f\d]{8})$/i.test(String(color).trim());
 const invertComponent =value => Math.max(0, Math.min(255, 255 - value));
 const invertColor = color => invertHexColor(colorToHex(color));
 const shiftRgbComponents = (rgb, angle) => rgb.map(component => fixColorAngle(component + angle));
 
 
 function hexToRgb(hexColor) {
-  const hex = hexColor.startsWith("#") ? hexColor.slice(1) : hexColor;
+  let hex = hexColor.trim().startsWith("#") ? hexColor.trim().slice(1) : hexColor.trim();
+  if (hex.length === 3 || hex.length === 4) hex = hex.split('').map(c => c + c).join(''); // #abc -> #aabbcc
   const [r, g, b] = hex.match(/([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})/i).slice(1).map(str => parseInt(str, 16));
   return [r, g, b];
 }
@@ -59,7 +57,7 @@ function colorToHex(color) {
         return color;
     }
   }
-  if (isValidHex(color)) return color
+  if (isValidHex(color)) return color.trim()
   const matchValues = color.match(/^(\w+)\(([^)]+)\)/i);
 
   if (!matchValues) {
@@ -91,12 +89,8 @@ function invertHexColor(color) {
       console.error(`Invalid hex color: ${color}`);
       return color;
     }
-    const [, r, g, b] = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})/i?.exec(color);
-    if (!r || !g || !b) {
-      console.error(`Invalid hex color: ${color}`);
-      return color;
-    };
-    return `rgb(${255 - parseInt(r, 16)}, ${255 - parseInt(g, 16)}, ${255 - parseInt(b, 16)})`;
+    const [r, g, b] = hexToRgb(color);
+    return `rgb(${255 - r}, ${255 - g}, ${255 - b})`;
   } catch (error) {}
 }
 
@@ -166,12 +160,17 @@ function getCSSRulesWithColors() {
     try {
       const rules = styleSheets[i].cssRules || styleSheets[i].rules;
       if(!rules) continue;
-      for (let j = 0; j < rules.length; j++) {
-        const rule = rules[j];
-        if (isColorRule(rule.style)) allRules.push(rule);
-      }
+      const collect = list => {
+        for (let j = 0; j < list.length; j++) {
+          const rule = list[j];
+          if (rule.cssRules) collect(rule.cssRules); // @media, @supports, …
+          if (rule.style && isColorRule(rule.style)) allRules.push(rule);
+        }
+      };
+      collect(rules);
     } catch (error) {
-      console.error(error);
+      // Stylesheets from other origins (Google Fonts, CDNs) cannot be read; that is expected
+      if (error?.name !== 'SecurityError') console.error(error);
     }
   }
 
@@ -182,6 +181,15 @@ function getCSSRulesWithColors() {
     if (isColorRule(inlineStyle)) allRules.push({ selectorText: makeQueryPathUntilBody(element), style: inlineStyle });
   }
   return allRules;
+}
+
+function readSavedThemes() {
+  try {
+    return JSON.parse(localStorage.getItem("themeCtrlThemes")) || {};
+  } catch (error) {
+    console.error('Saved themes could not be read:', error);
+    return {};
+  }
 }
 
 function addThemeToList(themeName) {
@@ -203,7 +211,7 @@ function themeCtrl_saveTheme() {
       const property = rule.style[i];
       const value = rule.style.getPropertyValue(property);
       let selector = rule.selectorText;
-      if (selector != ':root' || !selector.startsWith('#') || !selector.startsWith('.')) {
+      if (selector && selector != ':root' && !selector.startsWith('#') && !selector.startsWith('.')) {
         try {
           const selectors = document.querySelectorAll(selector);
           for (let index = 0; index < selectors.length; index++) {
@@ -212,13 +220,13 @@ function themeCtrl_saveTheme() {
             if (style.getPropertyValue(property) !== value) continue;
             if(element.id)
               selector = `#${element.id}`;
-            else if(element.className)
-              selector = `.${element.className}`;
+            else if(element.classList.length)
+              selector = '.' + [...element.classList].map(c => CSS.escape(c)).join('.');
             else {
               selector = element.tagName;
               if(element.parentElement) {
                 const parent = element.parentElement;
-                let parentSelector = parent.id ? `#${parent.id}` : parent.className ? `.${parent.className}` : parent.tagName;
+                let parentSelector = parent.id ? `#${CSS.escape(parent.id)}` : parent.classList.length ? '.' + [...parent.classList].map(c => CSS.escape(c)).join('.') : parent.tagName;
                 selector = `${parentSelector} ${selector}`;
               }
             }
@@ -255,7 +263,7 @@ function themeCtrl_loadTheme() {
 
 function themeCtrl_setTheme(theme) {
   if(!themeCtrl_Themes[theme])
-    themeCtrl_Themes = JSON.parse(localStorage.getItem("themeCtrlThemes")) || {};
+    themeCtrl_Themes = readSavedThemes();
   const colors = themeCtrl_Themes[theme];
   if (!colors) return;
   const selectorTarger = document.getElementById('theme-css-selector')?.value || 'theme-auto';
@@ -291,7 +299,7 @@ function createThemeControlButton() {
 }
 
 function showThemeControl() {
-  themeCtrl_Themes = JSON.parse(localStorage.getItem("themeCtrlThemes")) || {};
+  themeCtrl_Themes = readSavedThemes();
   const cssRules = getCSSRulesWithColors();
   const themeCtrlTheme = localStorage.getItem("themeCtrlTheme");
   let themeSpacer = document.getElementById('theme-spacer');
@@ -321,7 +329,7 @@ function showThemeControl() {
       deleteButton.disabled = false;
       themeCtrl_setTheme(themeListSelect.value)
     };
-    const themes = JSON.parse(localStorage.getItem("themeCtrlThemes")) || {};
+    const themes = readSavedThemes();
     if (themes) {
       for (const theme in themes) {
         const option = document.createElement('option');
