@@ -84,7 +84,7 @@ Cria o namespace global `JCGWeb` e, no `DOMContentLoaded`, instancia `JCGWeb.Obs
 
 ### 3.2 `common.js`
 
-**Extensões de protótipos** (atribuídas com `=`, portanto *enumeráveis*):
+**Extensões de protótipos** (não enumeráveis: não aparecem em `for…in`):
 
 - `String.prototype.eachWordUp()` — "título" (cada palavra com inicial maiúscula, resto minúsculo).
 - `String.prototype.firstUpCase()` — só a primeira letra maiúscula.
@@ -99,19 +99,19 @@ Cria o namespace global `JCGWeb` e, no `DOMContentLoaded`, instancia `JCGWeb.Obs
 | `CurrentUrl`, `CurrentUrlPath`, `CurrentUrlParams`, `CurrentUrlHash`, `CurrentUrlHost`, `CurrentUrlHostname`, `CurrentUrlPort`, `CurrentUrlProtocol`, `CurrentUrlOrigin` | Atalhos para `window.location`. |
 | `AddScript(url)`, `AddStyle(url)`, `AddMeta(name, content)` | Inserem `<script>`, `<link rel=stylesheet>` e `<meta>` no `<head>`. |
 | `isClass(fn)` | `true` se a função for uma `class`. |
-| `makeObjbyPath(obj, 'a.b.c', valor)` | Cria a estrutura aninhada **mutando** `obj` (não retorna nada). |
-| `safeWindowsFileName(nome)` | Troca caracteres proibidos no Windows por `_`, remove pontos/espaços finais e prefixa nomes reservados (`CON`, `NUL`, …). |
+| `makeObjbyPath(obj, 'a.b.c', valor)` | Cria a estrutura aninhada mutando `obj` e retorna o objeto (cria um novo se `obj` for `null`). |
+| `safeWindowsFileName(nome)` | Normaliza (NFKD), troca caracteres proibidos no Windows por `_`, remove pontos/espaços finais e prefixa nomes reservados (`CON`, `NUL`, …). |
 
 ### 3.3 `object.js`
 
 | Função | Descrição |
 |---|---|
-| `GetValueFromPath('a.b', obj)` | Lê valor por caminho. Lança erro se um nível intermediário não existir. |
-| `MakeObjFromPath('a.b', valor, obj, sep = '.')` | Escreve valor por caminho criando objetos intermediários; retorna `obj`. |
+| `GetValueFromPath('a.b', obj)` | Lê valor por caminho; `undefined` se algum nível não existir. |
+| `MakeObjFromPath('a.b', valor, obj, sep = '.')` | Escreve valor por caminho criando objetos intermediários; retorna `obj`. Ignora caminhos com `__proto__`/`constructor`/`prototype`. |
 | `flattenValues(obj)` | Lista `{path, value: String}` de todas as folhas (arrays viram `campo.0`, `campo.1`, …). |
 | `flattenKeys(obj)` | Lista de caminhos das folhas (arrays são tratados como folha). |
-| `cleanObject(obj)` | Remove `null`, `undefined`, `''`, arrays vazios e objetos vazios (ver bug na auditoria). |
-| `mergeObjects(destino, origem)` | Merge profundo de `origem` em `destino` (arrays são substituídos). Retorna `destino`. |
+| `cleanObject(obj)` | Remove `null`, `undefined`, `''`, arrays vazios e objetos vazios — inclusive os que ficam vazios após a limpeza; arrays são compactados. Altera e retorna o próprio `obj`. |
+| `mergeObjects(destino, origem)` | Merge profundo de `origem` em `destino` (arrays são substituídos). Ignora as chaves `__proto__`, `constructor` e `prototype`. Retorna `destino`. |
 | `searchInArray(array, query, fields = null)` | Filtra objetos cujo valor (em qualquer folha, ou apenas nos `fields` exatos) contenha `query` (case-insensitive). Usa cache por **identidade** do array (`WeakMap`) e por consulta. |
 | `ArraySort(arr, ignoreCase)` | Ordena **no lugar**. |
 | `ArrayCaseEachWord(arr)`, `ArrayNormalize(arr)` | Aplicam `eachWordUp` / `firstUpCase` em cada string. |
@@ -127,9 +127,12 @@ new Controller(func, AbortBeforeRun = true, startDelayMs = 0, intervalBetweenRun
 
 - `exec(...params)` → agenda `func(...params, signal)` após `startDelayMs`. O último argumento recebido por `func`
   é sempre um `AbortSignal`.
-  - Se já houver uma execução agendada/rodando, ela é abortada (`signal.aborted = true`) e o evento `onAbort` dispara.
+  - Se já houver uma execução agendada/rodando, ela é abortada (`signal.aborted = true`), o evento `onAbort` dispara e
+    a Promise dessa chamada **resolve com `undefined`** (antes ficava pendente para sempre). Quem faz `await` deve tratar
+    o `undefined` como "substituída por uma chamada mais nova".
   - Se `AbortBeforeRun === false` e algo estiver rodando, a nova chamada é ignorada (`Promise.resolve()`).
-  - Se a chamada ocorrer a menos de `intervalBetweenRunsMs` da última execução, ela é **descartada** (resolve `undefined`).
+  - Se a chamada ocorrer a menos de `intervalBetweenRunsMs` da última execução, ela é **adiada para o fim da janela**
+    (só a última chamada adiada roda; as anteriores resolvem `undefined`). Antes ela era descartada.
 - `abort(...params)` cancela o que estiver pendente.
 - Eventos: `addEvent('onDone' | 'onAbort' | 'onError', cb)`, `deleteEvent`, `clearEvents`, `execEvents`.
   `onDone(result, ...params)`, `onAbort(...params)`, `onError(error)`.
@@ -141,14 +144,15 @@ new Controller(func, AbortBeforeRun = true, startDelayMs = 0, intervalBetweenRun
 const buscar = Controller.wrap(async (texto, signal) => {
   const r = await fetch(`/api?q=${encodeURIComponent(texto)}`, { signal });
   return r.json();
-}, { abortBeforeRun: true, delayMs: 300 });   // atenção: a chave é delayMs, não startDelayMs
+}, { abortBeforeRun: true, delayMs: 300 });   // startDelayMs também é aceito como nome da opção
 
 buscar.Controller.addEvent('onDone', resultado => console.log(resultado));
 input.addEventListener('input', e => buscar(e.target.value));
 ```
 
 > A função abortada só para de verdade se ela própria respeitar o `signal`.
-> Veja na auditoria as condições de corrida conhecidas (`CDN-01`, `CDN-02`).
+> Mudança de 2026-10-23 (`CDN-01`/`CDN-02`): cada chamada tem estado próprio — uma execução antiga não resolve mais a
+> Promise da nova nem apaga o timer dela.
 
 ### 3.5 `observer.js` — `Observer`
 
@@ -160,7 +164,7 @@ obs.Start();
 
 Combina um `MutationObserver` (`childList`, `subtree`, `attributes`, `characterData`) com *listeners* de eventos DOM
 (`obs.Listeners`: `click`, `mouseover`, `mouseout`, `mousemove`, `keydown`, `keyup`, `keypress`, `submit`, `input`,
-`change`, `focus`, `blur`, `load`, …). O mesmo callback recebe os dois tipos de notificação — diferencie com
+`change`, `focus`, `blur`, `load`, `contextmenu`, `scroll`, `wheel`, `resize`, `copy`, `cut`, `paste`). O mesmo callback recebe os dois tipos de notificação — diferencie com
 `arg instanceof Event`.
 
 Métodos: `Start()`, `Stop()`, `SetListeners(lista)`, `AddListener(nome)`, `RemoveListener(nome)`,
@@ -196,7 +200,8 @@ se.search(array, consulta, ordenacao = undefined, isLaxQuery = false)
 - **Modo estrito** (`isLaxQuery = false`): retorna itens que casam com **qualquer** grupo (OU).
 - **Modo "lax"** (`isLaxQuery = true`): calcula uma pontuação por item, ordena por ela e retorna **cópias rasas**
   dos itens (não as referências originais).
-- `ordenacao`: `[{ fields: ['CommunityRating'], type: 'desc' }, …]` (atualmente sem efeito — ver `CDN-05`).
+- `ordenacao`: `[{ fields: ['CommunityRating'], type: 'desc' }, …]` — critérios aplicados em ordem (desempate pelo
+  seguinte). O array de entrada não é alterado.
 - Resultados são memorizados por identidade do array + JSON da consulta.
 
 ### 3.9 `pagememory.js` — `pageMemory` / `PageMemoryDB`
@@ -205,7 +210,9 @@ Persiste o estado de elementos marcados com o atributo `save` (ou `data-save`) n
 (banco `pageMemoryDB`, store `pageData`, chave = `window.location.href` completo).
 
 ```js
-const memoria = new pageMemory();           // ou JCGWeb.pageMemory (já instanciado)
+const memoria = new pageMemory();           // ou JCGWeb.pageMemory (já instanciado, com as opções padrão)
+// Opções (todas opcionais, adicionadas em 2026-10-23):
+// new pageMemory({ listeners: ['input', 'change', 'submit', 'toggle'], saveDelayMs: 500, saveIntervalMs: 2000, restoreDelayMs: 500 })
 memoria.addEvent('onMemoryIsEmpty', () => { /* primeira visita */ });
 memoria.addEvent('onRestoreSucess', registro => { /* estado restaurado */ });
 await memoria.init();                       // abre o IndexedDB, registra listeners e restaura
@@ -227,8 +234,11 @@ O que é salvo por elemento:
   `tag.classes:nth-child()`); **dê `id` estável a todo elemento com `save`**.
 - Atributo `customTrigger="nomeDeFuncaoGlobal"`: após restaurar, chama `window[nome](elemento)`.
 - Cada gravação também guarda `document.documentElement.outerHTML` inteiro (campo `dom`), que não é usado na restauração.
-- Salvamentos são disparados pelos eventos `input/change/click/submit/toggle` e por mutações de DOM nos elementos
-  marcados, com debounce de 100 ms e intervalo mínimo de 2 s.
+- Salvamentos são disparados pelos eventos `input/change/click/submit/toggle` (configurável em `listeners`) e por
+  mutações de DOM nos elementos marcados, com debounce de 100 ms (`saveDelayMs`) e intervalo mínimo de 2 s
+  (`saveIntervalMs`). Uma alteração feita dentro do intervalo é salva no fim dele (antes era perdida).
+- `canSave = false` suspende os salvamentos. Imagens `blob:` cuja URL já foi revogada são salvas a partir dos pixels
+  do próprio `<img>` (vindo da cópia do CoverMaker).
 
 Eventos: `onSaveMemory`, `onRestoreSucess`, `onRestoreError`, `onMemoryIsEmpty`, `onDBSuccess`, `onDBError`
 (os nomes com "Sucess" são grafados assim no código).
@@ -290,7 +300,7 @@ Armazenamento: `localStorage.themeCtrlThemes` (JSON `{nome: [{selector, property
 
 `index.html` + `script.js` + `style.css` (Tailwind via CDN) demonstram cada módulo; `dummy/users.json` e
 `dummy/products.json` são dados de exemplo (formato dummyjson.com: `{users|products, total, skip, limit}`).
-Atualmente a página interrompe a execução na seção do Controller — ver `CDN-12`.
+Desde 2026-10-23 todas as seções carregam (antes a execução parava na seção do Controller, `CDN-12`).
 
 Para rodar localmente (necessário servidor HTTP por causa do `fetch` dos JSONs):
 
@@ -309,5 +319,5 @@ python3 -m http.server 8080   # e abra http://localhost:8080/
 
 - Tudo é global; dois arquivos que definam o mesmo nome se sobrescrevem silenciosamente.
 - Sem versionamento: consumidores remotos sempre recebem a última versão de `main`.
-- `common.js` modifica `String.prototype`/`Array.prototype` de forma enumerável.
+- `common.js` adiciona métodos a `String.prototype`/`Array.prototype` (não enumeráveis).
 - Sem testes automatizados.

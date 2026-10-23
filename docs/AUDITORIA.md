@@ -9,25 +9,31 @@
 
 ## Resumo
 
+> **Status (2026-10-23, branch `claude/beautiful-davinci-nd8o1m`, aguardando merge):** ✅ corrigido e testado ·
+> ◐ parcialmente corrigido. CDN-17: `makeObjbyPath`, `GetValueFromPath` e protótipos corrigidos; `FetchQueue` e as
+> coordenadas do mouse em `base.js` continuam como estavam. CDN-07, CDN-08 (campo `dom`), CDN-10, CDN-13, CDN-15,
+> CDN-16 e CDN-18 estão nas próximas fases do plano. Testes: 17 casos em Node (passam na versão nova; os de bug falham
+> na antiga), demo no Chromium sem erros, CoverMaker e content-recommender sem regressão.
+
 | ID | Sev. | Arquivo | Problema |
 |---|---|---|---|
-| CDN-01 | Alta | `controller.js` | Chamada nova recebe o resultado da antiga e a antiga nunca resolve (condição de corrida) 🧪 |
-| CDN-02 | Alta | `controller.js` | `intervalBetweenRunsMs` descarta a última chamada (perde atualizações) 🧪 |
-| CDN-03 | Alta | `pagememory.js` | `_savePageInfo` recebe o `Event` no lugar do `AbortSignal` |
-| CDN-04 | Alta | `object.js` | `mergeObjects` permite *prototype pollution* via `__proto__` 🧪 |
-| CDN-05 | Alta | `search.js` | `sort()` ordena uma cópia e devolve o array original (ordenação nunca acontece) 🧪 |
-| CDN-06 | Alta | `object.js` | `cleanObject` devolve o objeto filho e pula chaves 🧪 |
+| CDN-01 ✅ | Alta | `controller.js` | Chamada nova recebe o resultado da antiga e a antiga nunca resolve (condição de corrida) 🧪 |
+| CDN-02 ✅ | Alta | `controller.js` | `intervalBetweenRunsMs` descarta a última chamada (perde atualizações) 🧪 |
+| CDN-03 ✅ | Alta | `pagememory.js` | `_savePageInfo` recebe o `Event` no lugar do `AbortSignal` |
+| CDN-04 ✅ | Alta | `object.js` | `mergeObjects` permite *prototype pollution* via `__proto__` 🧪 |
+| CDN-05 ✅ | Alta | `search.js` | `sort()` ordena uma cópia e devolve o array original (ordenação nunca acontece) 🧪 |
+| CDN-06 ✅ | Alta | `object.js` | `cleanObject` devolve o objeto filho e pula chaves 🧪 |
 | CDN-07 | Média | `pagememory.js` | Restaura atributos antigos por cima do HTML novo (blacklist em vez de whitelist) |
 | CDN-08 | Média | `pagememory.js` | Salva o `outerHTML` inteiro a cada gravação sem usar |
-| CDN-09 | Média | `pagememory.js` | Seletores sem `CSS.escape` e `destroy()` lança erro |
+| CDN-09 ✅ | Média | `pagememory.js` | Seletores sem `CSS.escape` e `destroy()` lança erro |
 | CDN-10 | Média | `TableSorter.js` | `Sorters.Date` nunca funciona; comparadores com sentidos opostos; comparador booleano |
-| CDN-11 | Média | `observer.js` | Nomes de eventos inválidos (`onresize`, `oncopy`…) e `RemoveCallBack` com variável inexistente |
-| CDN-12 | Média | `script.js` (demo) | Demo para na linha 123: metade das seções nunca renderiza 🧪 |
+| CDN-11 ✅ | Média | `observer.js` | Nomes de eventos inválidos (`onresize`, `oncopy`…) e `RemoveCallBack` com variável inexistente |
+| CDN-12 ✅ | Média | `script.js` (demo) | Demo para na linha 123: metade das seções nunca renderiza 🧪 |
 | CDN-13 | Média | `popupmessage.js`, `treelist.js` | HTML não escapado (XSS se o conteúdo vier de fora) |
-| CDN-14 | Média | `common.js` | `safeWindowsFileName` reintroduz `/` e `:` após `NFKD` 🧪 |
+| CDN-14 ✅ | Média | `common.js` | `safeWindowsFileName` reintroduz `/` e `:` após `NFKD` 🧪 |
 | CDN-15 | Média | `themeControl.js` | Regras `@media` interrompem a varredura; hex de 3 dígitos quebra; condição sempre verdadeira |
 | CDN-16 | Baixa | `search.js` | Operador `!=` casa quase tudo; cache por identidade fica velho se o array mudar |
-| CDN-17 | Baixa | `common.js`, `object.js`, `fetchqueue.js`, `base.js` | `makeObjbyPath` não retorna; protótipos enumeráveis; `fetch` sem `res.ok`; mouse com coordenadas mistas |
+| CDN-17 ◐ | Baixa | `common.js`, `object.js`, `fetchqueue.js`, `base.js` | `makeObjbyPath` não retorna; protótipos enumeráveis; `fetch` sem `res.ok`; mouse com coordenadas mistas |
 | CDN-18 | Baixa | `README.md` | API descrita não existe; sugere incluir o `script.js` da demo |
 
 ---
