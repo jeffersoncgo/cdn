@@ -2,7 +2,7 @@
 
 > 📚 **Verified technical docs (pt-BR):** [docs/DOCUMENTACAO.md](docs/DOCUMENTACAO.md) · [Code audit & known issues](docs/AUDITORIA.md)
 >
-> ⚠️ Several API examples further down this README were auto-generated and do not match the code (e.g. `JCGWeb.PageMemory.saveElementState`, `JCGWeb.PopupMessage.show`, `JCGWeb.ThemeControl.setTheme`, `JCGWeb.TreeList.render` do not exist), and the root `script.js` is the demo page script — do not include it in other pages. Use the docs above as the reference.
+> The examples below were checked against the code on 2026-10-23 (an earlier auto-generated version described APIs that do not exist). Full reference: [docs/DOCUMENTACAO.md](docs/DOCUMENTACAO.md).
 
 This repository houses a collection of client-side JavaScript utilities and UI components designed to enhance web page interactivity and manage client-side state. It provides a modular toolkit for front-end development, offering functionalities ranging from core DOM manipulation and event handling to advanced UI elements like sortable tables, dynamic popup messages, theme control, and interactive tree structures. The project also includes utilities for managing asynchronous operations, sequential ID generation, and persisting simple page state using browser storage. Intended for web developers, this library facilitates the creation of dynamic and responsive web interfaces without relying on server-side frameworks for basic functionalities.
 
@@ -22,9 +22,10 @@ This repository houses a collection of client-side JavaScript utilities and UI c
 ## ✨ Features
 
 *   **Core Utilities:** Essential functions for DOM manipulation, event handling, and object operations.
-*   **Asynchronous Control:** Tools for managing and potentially canceling asynchronous processes.
+*   **Asynchronous Control:** `Controller` (debounce, cancel the previous run, throttle) and `FetchQueue` (limited parallel requests).
+*   **Search:** `SearchEngine` (text and structured queries over arrays of objects, with sorting and scoring).
 *   **Sequential ID Generation:** Simple mechanism for generating unique IDs client-side.
-*   **Page State Persistence:** Ability to save and restore simple page element states using `localStorage`.
+*   **Page State Persistence:** `pageMemory` saves and restores elements marked with `save` (values, checkboxes, `<details>`, images) in IndexedDB.
 *   **Sortable Tables:** A JavaScript component (`TableSorter`) for making HTML tables sortable client-side.
 *   **Popup Messages:** Dynamic, temporary message overlays (`popupmessage`) for user feedback.
 *   **Dynamic Theme Control:** Functionality (`themeControl`) to manage and apply visual themes, including saving theme preferences.
@@ -34,397 +35,124 @@ This repository houses a collection of client-side JavaScript utilities and UI c
 
 ## ⚙️ Installation / Setup
 
-This project is primarily a collection of client-side assets. To use the components and utilities:
+No build step. Include the files you need with `<script>` tags, the core ones first. They are published at
+`https://jeffersoncgo.github.io/cdn/js/<file>`; for an app you maintain, copying them into the app (as CoverMaker and
+content-recommender do in `js/vendor/`) avoids breaking when this repository changes.
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/jeffersoncgo/cdn.git
-    ```
-2.  **Include the files:**
-    *   Navigate to the cloned directory.
-    *   Include the necessary `.js` and `.css` files in your HTML documents using `<script>` and `<link>` tags. Ensure the core utility files (`base.js`, `common.js`, `object.js`, etc.) are included before components that depend on them.
-    *   For example, to include the main script and styles in `index.html`:
-        ```html
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Your Project</title>
-            <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/style.css">
-            <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/popupmessage.css">
-            <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/themeControl.css">
-            <link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/treelist.css">
-            <!-- Include core JS files first -->
-            <script src="https://jeffersoncgo.github.io/cdn/js/base.js"></script>
-            <script src="https://jeffersoncgo.github.io/cdn/js/common.js"></script>
-            <script src="https://jeffersoncgo.github.io/cdn/js/object.js"></script>
-            <script src="https://jeffersoncgo.github.io/cdn/js/observer.js"></script>
-            <script src="https://jeffersoncgo.github.io/cdn/js/pid.js"></script>
-            <script src="https://jeffersoncgo.github.io/cdn/js/controller.js"></script>
-            <script src="https://jeffersoncgo.github.io/cdn/js/pagememory.js"></script>
-            <!-- Include component JS files -->
-            <script src="https://jeffersoncgo.github.io/cdn/js/TableSorter.js"></script>
-            <script src="https://jeffersoncgo.github.io/cdn/js/popupmessage.js"></script>
-            <script src="https://jeffersoncgo.github.io/cdn/js/themeControl.js"></script>
-            <script src="https://jeffersoncgo.github.io/cdn/js/treelist.js"></script>
-            <!-- Include your main application script -->
-            <script src="https://jeffersoncgo.github.io/cdn/script.js"></script>
-        </head>
-        <body>
-            <!-- Your content here -->
-        </body>
-        </html>
-        ```
+```html
+<link rel="stylesheet" href="https://jeffersoncgo.github.io/cdn/js/popupmessage.css">
+<script src="https://jeffersoncgo.github.io/cdn/js/base.js"></script>
+<script src="https://jeffersoncgo.github.io/cdn/js/common.js"></script>
+<script src="https://jeffersoncgo.github.io/cdn/js/object.js"></script>
+<script src="https://jeffersoncgo.github.io/cdn/js/controller.js"></script>
+<script src="https://jeffersoncgo.github.io/cdn/js/observer.js"></script>
+<script src="https://jeffersoncgo.github.io/cdn/js/pagememory.js"></script>
+<script src="https://jeffersoncgo.github.io/cdn/js/popupmessage.js"></script>
+```
 
-No server-side setup or build process is strictly required for basic usage, as this is a collection of standalone client-side assets.
+The root `index.html`, `script.js` and `style.css` are the **demo page** — do not include `script.js` in other pages.
 
 ## 📂 Project Structure
 
-<details>
-<summary>Click to Expand</summary>
-
 ```
-.
-├── .github
-├── dummy/
-│   ├── products.json
-│   └── users.json
-├── js/
-│   ├── base.js
-│   ├── common.js
-│   ├── controller.js
-│   ├── object.js
-│   ├── observer.js
-│   ├── pagememory.js
-│   ├── pid.js
-│   ├── popupmessage.css
-│   ├── popupmessage.js
-│   ├── TableSorter.js
-│   ├── themeControl.css
-│   ├── themeControl.js
-│   ├── treelist.css
-│   └── treelist.js
-├── index.html
-├── README.md
-├── script.js
-└── style.css
+js/base.js          JCGWeb namespace, mouse position, getUniqueSelector, element helpers
+js/common.js        utils (safeWindowsFileName…), String/Array helpers (non-enumerable)
+js/object.js        searchInArray, path helpers, mergeObjects, cleanObject
+js/controller.js    Controller: debounce, abort the previous run, throttle
+js/observer.js      Observer: MutationObserver + DOM events
+js/pid.js           PID helper
+js/fetchqueue.js    FetchQueue: fetch with a concurrency limit
+js/search.js        SearchEngine
+js/pagememory.js    pageMemory / PageMemoryDB (IndexedDB)
+js/TableSorter.js   sortable tables
+js/popupmessage.js  stacked popup messages (+ .css)
+js/treelist.js      collapsible tree from an object (+ .css)
+js/themeControl.js  color theme editor bar (+ .css)
+dummy/              sample JSON for the demo
+tests/              unit tests (Node 20+: `node --test "tests/*.test.js"`)
 ```
 
-</details>
+## 📖 Usage (short examples)
 
-*   `.github/`: Contains GitHub-specific configuration files, likely for workflows or issue templates.
-*   `dummy/`: Stores static JSON files (`products.json`, `users.json`) providing mock data, useful for testing components or demonstrating data loading.
-*   `js/`: This directory is the core of the library, containing all the modular JavaScript files and associated CSS for specific components. Each `.js` file typically represents a distinct utility or UI component (e.g., `TableSorter.js`, `popupmessage.js`, `themeControl.js`, `treelist.js`), while others (`base.js`, `common.js`, `object.js`, `controller.js`, `observer.js`, `pagememory.js`, `pid.js`) provide foundational utilities and patterns.
-*   `index.html`: The main entry point, likely serving as a demonstration page that includes and utilizes the JavaScript and CSS assets from the `js/` directory and the data from `dummy/`.
-*   `README.md`: This file, providing documentation for the repository.
-*   `script.js`: A central script, likely responsible for orchestrating the usage of various components and utilities from the `js/` directory, potentially including loading data from `dummy/`.
-*   `style.css`: The main stylesheet for the demonstration page (`index.html`), providing general styling.
+**Controller** — the wrapped function always receives an `AbortSignal` as its last argument:
 
-## 📖 Detailed Usage / API Documentation
+```js
+const search = Controller.wrap(async (text, signal) => {
+  const r = await fetch(`/api?q=${encodeURIComponent(text)}`, { signal });
+  return r.json();
+}, { abortBeforeRun: true, delayMs: 300 });
+search.Controller.addEvent('onDone', result => console.log(result));
+input.addEventListener('input', e => search(e.target.value)); // a superseded call resolves with undefined
+```
 
-This repository provides a suite of client-side JavaScript components and utilities, often organized under a potential `JCGWeb` namespace. Below is a breakdown of key modules and how to use them, synthesized from the file analyses.
+**pageMemory** — mark elements with `save` (give them a stable `id`):
 
-### ✨ Core Utilities (e.g., `base.js`, `common.js`, `object.js`, `controller.js`, `observer.js`, `pid.js`, `pagememory.js`)
+```html
+<input id="server" save>
+<script>
+  const memory = new pageMemory({ saveDelayMs: 500 });
+  memory.addEvent('onMemoryIsEmpty', () => { /* first visit */ });
+  memory.init(); // restores the saved state, then saves on input/change/click/submit/toggle
+</script>
+```
 
-These files offer foundational functionalities used by other components or available for general use. They cover DOM manipulation, event handling, object operations, asynchronous control, sequential ID generation, observing DOM changes, and persisting page state.
+**SearchEngine**
 
-*   **Description:** A collection of core helper functions and classes for common web development tasks. They provide abstractions over standard browser APIs and implement useful patterns like the Observer and a simple PID (Process ID) system for managing asynchronous operations. `pagememory.js` offers a simple way to save and restore the state of specific page elements using `localStorage`.
-*   **Key Features:**
-    *   Simplified DOM element selection and manipulation.
-    *   Cross-browser event handling utilities.
-    *   Object property manipulation and checking.
-    *   Mechanism for tracking and potentially cancelling asynchronous tasks (`pid`).
-    *   Generating unique client-side identifiers.
-    *   Observing DOM attribute changes (via `observer`).
-    *   Saving and restoring input values and potentially other element states (`pagememory`).
-*   **Dependencies:** Primarily relies on native browser APIs. Components might depend on utilities defined earlier in the inclusion order (e.g., `common.js` functions used by `controller.js`).
+```js
+const se = new SearchEngine();
+se.search(items, 'matrix');                                                   // text anywhere in the item
+se.search(items, [{ operator: 'any', fields: ['Genres'], queries: ['Action', 'Drama'] },
+                  { operator: '..', fields: ['ProductionYear'], queries: [1990, 2000] }],
+          [{ fields: ['CommunityRating'], type: 'desc' }]);
+```
 
-#### How to Use / API Highlights / Examples:
+**FetchQueue** — callbacks, and a Promise you can await:
 
-Usage typically involves calling static methods or functions exposed globally or within a top-level namespace (like `JCGWeb.Functions`).
+```js
+const q = new FetchQueue(3);
+const { data, error } = await q.fetch(url, { headers }, json => {}, err => {});
+```
 
-**Example 1: Using a Common Utility (e.g., `getById` or similar)**
+**TableSorter**
 
-This example demonstrates selecting a DOM element using a common utility function.
+```html
+<table id="people"><thead><tr><th sorttitle="Name">Name</th><th sorttitle="Age">Age</th></tr></thead><tbody>…</tbody></table>
+<script>new TableSorter('people', { Age: Sorters.Number, Name: Sorters.Default });</script>
+```
 
-*   **Input:** An element ID string.
-*   **Code Snippet:**
-    ```javascript
-    // Assuming a function like JCGWeb.Functions.getById exists
-    const myElement = JCGWeb.Functions.getById('myDiv');
+**Popup message** — text by default; pass `true` as the 9th argument to render HTML:
 
-    if (myElement) {
-        console.log('Element found:', myElement);
-        myElement.textContent = 'Content updated by script!';
-    } else {
-        console.error('Element not found!');
-    }
-    ```
-*   **Output:** Logs the element if found and updates its text content.
-*   **Explanation:** Core utilities often wrap common DOM tasks, making them potentially simpler or more robust across different browser versions compared to raw `document.getElementById`.
+```js
+PopuMessageManager.addMessage('Saved!', 'Success', 3000);
+```
 
-**Example 2: Using Page Memory (`pagememory.js`)**
+**TreeList**
 
-This example shows how to save and load the value of an input field.
+```js
+await TreeListManager.TreeHTML({ folder: { 'file.txt': 'content' } });
+container.appendChild(TreeListManager.document);
+```
 
-*   **Input:** An input element and potentially a unique key.
-*   **Code Snippet:**
-    ```html
-    <input type="text" id="myInput" data-memory-key="userInput">
-    <button onclick="saveInput()">Save</button>
-    <button onclick="loadInput()">Load</button>
-
-    <script>
-    // Assuming JCGWeb.PageMemory exists and is initialized
-    function saveInput() {
-        const inputElement = document.getElementById('myInput');
-        // saveElementState function likely takes element or key and saves its state
-        JCGWeb.PageMemory.saveElementState(inputElement);
-        console.log('Input state saved.');
-    }
-
-    function function loadInput() {
-        const inputElement = document.getElementById('myInput');
-         // loadElementState function likely takes element or key and restores its state
-        JCGWeb.PageMemory.loadElementState(inputElement);
-        console.log('Input state loaded.');
-    }
-
-    // On page load, attempt to load state for all elements with data-memory-key attribute
-    document.addEventListener('DOMContentLoaded', () => {
-         JCGWeb.PageMemory.loadAll(); // Or similar function to initialize/load
-    });
-    </script>
-    ```
-*   **Output:** Saves the current value of the input to `localStorage` and loads it back.
-*   **Explanation:** `pagememory.js` provides a simple way to persist UI state across page reloads or sessions, enhancing user experience for forms or interactive elements. The mechanism likely relies on data attributes (like `data-memory-key`) to identify elements and their associated storage keys.
-
-### 📊 Component: TableSorter (`TableSorter.js`)
-
-*   **Description:** A JavaScript class or set of functions designed to make standard HTML `<table>` elements sortable by clicking on column headers. It manipulates the DOM to reorder rows based on the content of cells in the clicked column, handling different data types (text, numbers).
-*   **Key Features:**
-    *   Sort HTML tables dynamically.
-    *   Supports sorting by different columns.
-    *   Handles ascending and descending order.
-    *   Likely attempts to infer data types for appropriate sorting.
-*   **Dependencies:** Relies on core DOM manipulation utilities from `js/`.
-
-#### How to Use / API Highlights / Examples:
-
-Usage involves selecting the table and initializing the sorter.
-
-**Example 1: Basic Table Sorting**
-
-This example initializes sorting on a table with ID `mySortableTable`.
-
-*   **Input:** An HTML table element or its ID.
-*   **Code Snippet:**
-    ```html
-    <table id="mySortableTable">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Age</th>
-                <th>City</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr><td>Alice</td><td>30</td><td>New York</td></tr>
-            <tr><td>Bob</td><td>25</td><td>London</td></tr>
-            <tr><td>Charlie</td><td>35</td><td>Paris</td></tr>
-        </tbody>
-    </table>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const table = document.getElementById('mySortableTable');
-        // Assuming TableSorter is available globally or via JCGWeb
-        if (typeof TableSorter !== 'undefined') {
-            new TableSorter(table); // Initialize the sorter
-        } else {
-            console.error('TableSorter not loaded.');
-        }
-    });
-    </script>
-    ```
-*   **Output:** The table headers become clickable. Clicking a header sorts the table rows based on that column's data.
-*   **Explanation:** The `TableSorter` constructor takes the table element and attaches click event listeners to the `<thead>` cells, triggering the sorting logic.
-
-### 💬 Component: PopupMessage (`popupmessage.js`, `popupmessage.css`)
-
-*   **Description:** Provides functionality to display temporary, non-intrusive popup messages (like toasts or notifications) on the screen to provide feedback to the user. It includes associated CSS for styling the messages.
-*   **Key Features:**
-    *   Display transient messages.
-    *   Customizable message content.
-    *   Timed auto-dismissal.
-    *   Associated CSS for visual styling.
-*   **Dependencies:** Requires `popupmessage.css` for styling and potentially core DOM manipulation utilities.
-
-#### How to Use / API Highlights / Examples:
-
-Usage likely involves a function call to trigger a message.
-
-**Example 1: Displaying a Success Message**
-
-This example shows how to display a simple success notification.
-
-*   **Input:** Message text, potentially message type (success, error, info), and duration.
-*   **Code Snippet:**
-    ```javascript
-    // Assuming a function like JCGWeb.PopupMessage.show exists
-    function showSuccess() {
-        JCGWeb.PopupMessage.show('Operation completed successfully!', 'success', 3000); // Text, Type, Duration in ms
-    }
-
-    // Call this function on button click or after an action
-    // <button onclick="showSuccess()">Show Success</button>
-    ```
-*   **Output:** A small popup message appears on the screen with the text "Operation completed successfully!" and fades away after 3 seconds.
-*   **Explanation:** The `show` function likely creates a message element, adds it to the DOM, applies appropriate styling based on the type, and uses `setTimeout` to remove it after the specified duration.
-
-### 🎨 Component: ThemeControl (`themeControl.js`, `themeControl.css`)
-
-*   **Description:** Enables dynamic control over the visual theme of a web page. It allows applying different color schemes or styles and includes functionality to save the user's preferred theme using `localStorage` so it persists across sessions.
-*   **Key Features:**
-    *   Apply predefined or custom themes.
-    *   Dynamically change page styles (likely via CSS variables or class names).
-    *   Save the currently active theme to `localStorage`.
-    *   Load the saved theme on page load.
-    *   Associated CSS for defining themes or variables.
-*   **Dependencies:** Requires `themeControl.css` and relies on `localStorage` browser API.
-
-#### How to Use / API Highlights / Examples:
-
-Usage involves initializing the theme control and calling functions to apply or save themes.
-
-**Example 1: Applying a Theme**
-
-This example shows how to switch the page's theme programmatically.
-
-*   **Input:** A theme identifier (e.g., a string name).
-*   **Code Snippet:**
-    ```javascript
-    // Assuming JCGWeb.ThemeControl exists and is initialized
-    function applyDarkTheme() {
-        JCGWeb.ThemeControl.setTheme('dark'); // Apply the theme named 'dark'
-    }
-
-    function applyLightTheme() {
-        JCGWeb.ThemeControl.setTheme('light'); // Apply the theme named 'light'
-    }
-
-    // Call these functions via UI elements like buttons or dropdowns
-    // <button onclick="applyDarkTheme()">Dark Mode</button>
-    ```
-*   **Output:** The page's visual style changes according to the 'dark' or 'light' theme defined in the CSS and managed by the `themeControl.js`.
-*   **Explanation:** The `setTheme` function likely adds a class to the `<body>` or `<html>` element (e.g., `theme-dark`) which CSS rules then target to apply specific styles or variable values.
-
-**Example 2: Saving and Loading Theme Preference**
-
-This example demonstrates how the theme preference is saved and automatically loaded.
-
-*   **Input:** No direct input for loading; saving takes the current theme.
-*   **Code Snippet:**
-    ```javascript
-    // In themeControl.js or initialization script:
-    document.addEventListener('DOMContentLoaded', () => {
-        JCGWeb.ThemeControl.loadSavedTheme(); // Attempt to load theme from localStorage
-
-        // Assuming a UI element triggers saving
-        document.getElementById('saveThemeButton').addEventListener('click', () => {
-            JCGWeb.ThemeControl.saveCurrentTheme(); // Save the theme currently applied
-            JCGWeb.PopupMessage.show('Theme preference saved.', 'info', 2000);
-        });
-    });
-    ```
-*   **Output:** On page load, the last saved theme is applied. Clicking the save button stores the current theme choice in `localStorage`.
-*   **Explanation:** The `loadSavedTheme` function checks `localStorage` for a saved theme preference key and applies the corresponding theme using `setTheme`. `saveCurrentTheme` reads the active theme and stores it in `localStorage`.
-
-### 🌳 Component: TreeList (`treelist.js`, `treelist.css`)
-
-*   **Description:** A component for rendering hierarchical data as an interactive, collapsible tree structure within an HTML element. It allows users to expand and collapse nodes to navigate through nested data.
-*   **Key Features:**
-    *   Render hierarchical data visually.
-    *   Expand and collapse tree nodes.
-    *   Support for nested data structures.
-    *   Associated CSS for tree node styling and icons.
-*   **Dependencies:** Requires `treelist.css` and likely core DOM manipulation utilities.
-
-#### How to Use / API Highlights / Examples:
-
-Usage involves providing hierarchical data (e.g., an array of objects with nested children) and initializing the tree component on a target element.
-
-**Example 1: Rendering a Simple Tree**
-
-This example shows how to display a basic tree structure.
-
-*   **Input:** A target HTML element and an array representing the tree data.
-*   **Code Snippet:**
-    ```html
-    <div id="myTreeContainer"></div>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const treeData = [
-            {
-                id: 'node1',
-                text: 'Parent Node 1',
-                children: [
-                    { id: 'node1_1', text: 'Child Node 1.1' },
-                    { id: 'node1_2', text: 'Child Node 1.2' }
-                ]
-            },
-            {
-                id: 'node2',
-                text: 'Parent Node 2',
-                children: [
-                    { id: 'node2_1', text: 'Child Node 2.1' }
-                ]
-            }
-        ];
-
-        const container = document.getElementById('myTreeContainer');
-
-        // Assuming JCGWeb.TreeList exists and has a render method
-        if (typeof JCGWeb.TreeList !== 'undefined') {
-             JCGWeb.TreeList.render(container, treeData); // Render the tree
-        } else {
-            console.error('TreeList component not loaded.');
-        }
-    });
-    </script>
-    ```
-*   **Output:** An interactive tree structure is rendered inside the `myTreeContainer` div, with "Parent Node 1" and "Parent Node 2" initially visible and collapsible/expandable.
-*   **Explanation:** The `render` function takes the container element and the data array, then recursively builds the HTML structure for the tree, attaching event listeners for expand/collapse actions.
+**themeControl** — loading the script adds a brush button that opens the theme bar; themes are kept in
+`localStorage.themeCtrlThemes`.
 
 ## 🔧 Configuration
 
-Client-side configuration is primarily handled through the initialization of components and the use of browser `localStorage` for persistence.
-
-*   **Theme Persistence:** The `themeControl.js` component saves the active theme name to `localStorage` under a specific key. Users can change themes via UI elements, and the preference is automatically saved and loaded on subsequent visits. The key used for storage is internal to the component.
-*   **Page Memory:** The `pagememory.js` utility saves the state of elements (like input values) to `localStorage`, using keys derived from element IDs or `data-memory-key` attributes. This provides a simple, element-specific state persistence mechanism.
-
-There are no external configuration files (like `.env` or `.json` configs) processed by the client-side code itself; the `dummy/` files are data sources, not configuration.
+There are no configuration files. Options are passed to the constructors (see the docs). Storage used:
+`pageMemory` → IndexedDB `pageMemoryDB`; `themeControl` → `localStorage` (`themeCtrlThemes`, `themeCtrlTheme`).
 
 ## 🔒 Security & Safety Highlights
 
-This library is designed for client-side execution within the user's browser.
-
-*   **No Server Interaction Required:** The core functionalities operate purely in the browser environment, minimizing reliance on external servers beyond serving the initial files.
-*   **No Sensitive Data Handling:** The components primarily handle UI state and presentation logic. There is no inherent functionality for processing sensitive user credentials or private data.
-*   **Local Storage Usage:** Theme preferences and page memory use `localStorage`, which is isolated to the user's browser and the specific domain. While convenient for persistence, developers should be mindful that `localStorage` is not encrypted and should not be used for highly sensitive information.
-*   **DOM Manipulation:** Standard DOM manipulation techniques are used. Care should be taken when using these utilities with user-provided content to prevent potential Cross-Site Scripting (XSS) vulnerabilities, though the utilities themselves do not introduce new inherent risks beyond the standard browser environment.
-
-The project emphasizes safe operation within the browser sandbox, focusing on enhancing user interface functionality without requiring elevated permissions or handling sensitive data externally.
+*   Everything runs in the browser; nothing is sent anywhere.
+*   `popupmessage` and `treelist` insert text, not HTML, unless you opt in (`allowHTML`).
+*   `mergeObjects` / path helpers ignore `__proto__`, `constructor` and `prototype` keys.
+*   `pageMemory` stores whatever the marked elements contain: do not mark password fields with `save`.
 
 ## 🚧 Limitations and Edge Cases
 
-*   **Client-Side Only:** All functionality runs in the user's browser. This is not suitable for server-side tasks, complex data processing, or operations requiring access to server-side resources.
-*   **Browser Compatibility:** While basic DOM manipulation is broadly compatible, specific features (like `localStorage`) might have minor variations or require polyfills for very old browsers. Modern browsers are assumed.
-*   **Performance:** Manipulating large tables or deeply nested trees client-side can impact performance, especially on less powerful devices.
-*   **No Formal Package Management:** The files are intended for direct inclusion via `<script>` and `<link>` tags. There are no build steps or package manager configurations (`npm`, `yarn`, etc.) included in this repository structure, which might limit integration into larger, module-based front-end projects without manual effort.
-*   **State Persistence Limits:** `localStorage` is limited in capacity and intended for relatively small amounts of data. `pagememory` is best suited for simple state like input values, not complex application state.
+*   `pageMemory` locates elements by `id` (or a generated CSS path) — elements without a stable `id` may not restore.
+*   `themeControl` cannot read stylesheets served from other domains.
+*   Large tables/trees are rendered on the main thread.
 
 ## 🤝 Contributing
 

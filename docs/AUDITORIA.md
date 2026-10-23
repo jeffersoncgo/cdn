@@ -23,8 +23,8 @@
 | CDN-04 ✅ | Alta | `object.js` | `mergeObjects` permite *prototype pollution* via `__proto__` 🧪 |
 | CDN-05 ✅ | Alta | `search.js` | `sort()` ordena uma cópia e devolve o array original (ordenação nunca acontece) 🧪 |
 | CDN-06 ✅ | Alta | `object.js` | `cleanObject` devolve o objeto filho e pula chaves 🧪 |
-| CDN-07 | Média | `pagememory.js` | Restaura atributos antigos por cima do HTML novo (blacklist em vez de whitelist) |
-| CDN-08 | Média | `pagememory.js` | Salva o `outerHTML` inteiro a cada gravação sem usar |
+| CDN-07 ◐ | Média | `pagememory.js` | Restaura atributos antigos por cima do HTML novo (blacklist em vez de whitelist) |
+| CDN-08 ✅ | Média | `pagememory.js` | Salva o `outerHTML` inteiro a cada gravação sem usar |
 | CDN-09 ✅ | Média | `pagememory.js` | Seletores sem `CSS.escape` e `destroy()` lança erro |
 | CDN-10 ✅ | Média | `TableSorter.js` | `Sorters.Date` nunca funciona; comparadores com sentidos opostos; comparador booleano |
 | CDN-11 ✅ | Média | `observer.js` | Nomes de eventos inválidos (`onresize`, `oncopy`…) e `RemoveCallBack` com variável inexistente |
@@ -33,8 +33,8 @@
 | CDN-14 ✅ | Média | `common.js` | `safeWindowsFileName` reintroduz `/` e `:` após `NFKD` 🧪 |
 | CDN-15 ✅ | Média | `themeControl.js` | Regras `@media` interrompem a varredura; hex de 3 dígitos quebra; condição sempre verdadeira |
 | CDN-16 ✅ | Baixa | `search.js` | Operador `!=` casa quase tudo; cache por identidade fica velho se o array mudar |
-| CDN-17 ◐ | Baixa | `common.js`, `object.js`, `fetchqueue.js`, `base.js` | `makeObjbyPath` não retorna; protótipos enumeráveis; `fetch` sem `res.ok`; mouse com coordenadas mistas |
-| CDN-18 | Baixa | `README.md` | API descrita não existe; sugere incluir o `script.js` da demo |
+| CDN-17 ✅ | Baixa | `common.js`, `object.js`, `fetchqueue.js`, `base.js` | `makeObjbyPath` não retorna; protótipos enumeráveis; `fetch` sem `res.ok`; mouse com coordenadas mistas |
+| CDN-18 ✅ | Baixa | `README.md` | API descrita não existe; sugere incluir o `script.js` da demo |
 | CDN-19 ✅ | Alta | `pagememory.js` | Imagens identificadas só por `tipo + tamanho`: duas imagens diferentes com o mesmo tamanho em bytes são gravadas como a mesma 🧪 |
 | CDN-20 ✅ | Alta | `pagememory.js` | `canSave` começa `true`: uma gravação antes do fim da restauração sobrescreve o estado salvo com o padrão da página 🧪 |
 | CDN-21 ✅ | Média | `pagememory.js` | Gravação superada continua lendo imagens (Blob URLs já revogadas → `ERR_FILE_NOT_FOUND`) e atualiza o "estado anterior" 🧪 |
@@ -200,7 +200,9 @@ function cleanObject(obj) {
 }
 ```
 
-### CDN-07 — Restauração de atributos sobrescreve HTML novo (Média) 🔎
+### CDN-07 — Restauração de atributos sobrescreve HTML novo (Média) 🔎 — ◐ (2026-10-23)
+
+Como ficou: `added-trigger` já é ignorado (Fase 1). A lista de exclusão foi **mantida de propósito**: os apps dependem de atributos restaurados (o CoverMaker recria os slots pelo atributo `slotsCount` com `customTrigger`). Versionar o registro fica como sugestão.
 
 `js/pagememory.js:653-661` restaura **todos** os atributos salvos, exceto uma lista de exclusão. Se uma nova versão
 do site mudar `min`, `max`, `placeholder`, `onclick`, `src`, `href`… do elemento, a versão antiga gravada no IndexedDB
@@ -210,7 +212,9 @@ Sugestões: (a) usar lista de **inclusão** (apenas `value`, `checked`, `open`, 
 `save="attr1 attr2"`); (b) versionar o registro (`{version, data}`) e descartar se a versão do app mudou;
 (c) incluir `added-trigger` na lista ignorada.
 
-### CDN-08 — `outerHTML` gravado a cada salvamento (Média) 🧪
+### CDN-08 — `outerHTML` gravado a cada salvamento (Média) 🧪 — ✅ corrigido (2026-10-23)
+
+Como ficou: o `outerHTML` só é gravado com `new pageMemory({ saveDom: true })` (nada o lê); registro do CoverMaker de 383 KB para 7 KB, gravação de 10 ms para 2 ms. A assinatura das imagens já usa o conteúdo (`CDN-19`).
 
 `js/pagememory.js:459` grava `document.documentElement.outerHTML` em todo salvamento (campo `dom`), mas a restauração
 nunca o lê. No CoverMaker isso dá ~340 KB por gravação (medido). Remova o campo ou torne-o opcional (`this.saveDom = false`).
@@ -324,7 +328,9 @@ remove acentos) e depois substitua. Trate também o resultado vazio (`''` → `'
   Ofereça `clearCache(array)` ou chave por versão.
 - Resultados do cache são devolvidos por referência: se o chamador ordenar/alterar, o cache fica corrompido.
 
-### CDN-17 — Diversos (Baixa) 🔎
+### CDN-17 — Diversos (Baixa) 🔎 — ✅ corrigido (2026-10-23)
+
+Como ficou: `makeObjbyPath` retorna o objeto, protótipos não enumeráveis e `GetValueFromPath` com `?.` (Fase 1); `FetchQueue.fetch` confere `res.ok` (4xx/5xx vão para `onError`) e devolve uma Promise; `getUniqueSelectorOnClick` sem `this` global; `JCGWeb.Functions` não é mais zerado ao carregar `base.js` de novo. As duas rotinas que gravam `JCGWeb.Variables.Mouse` passam a usar `clientX/Y` (uma usava `screenX/Y`, e o valor alternava entre coordenadas da janela e da tela; só a demo o lê).
 
 - `utils.makeObjbyPath` não retorna o objeto; com `obj = null` o resultado se perde. Adicione `return obj;`.
 - `common.js:1-56`: protótipos estendidos por atribuição são **enumeráveis** (`for…in` em arrays passa a listar
@@ -335,7 +341,9 @@ remove acentos) e depois substitua. Trate também o resultado vazio (`''` → `'
 - `base.js:121-129`: `getUniqueSelectorOnClick` usa `this` em *arrow function* de topo (vira `window.page`).
 - `JCGWeb.Functions = {}` sobrescreve funções registradas por um carregamento anterior.
 
-### CDN-18 — README (Baixa) 🔎
+### CDN-18 — README (Baixa) 🔎 — ✅ corrigido (2026-10-23)
+
+Como ficou: README reescrito nas seções de instalação, estrutura, uso, configuração e limitações, com exemplos conferidos no código.
 
 O README foi gerado automaticamente e descreve APIs inexistentes (`JCGWeb.PageMemory.saveElementState/loadAll`,
 `JCGWeb.PopupMessage.show`, `JCGWeb.ThemeControl.setTheme/loadSavedTheme`, `JCGWeb.TreeList.render`),

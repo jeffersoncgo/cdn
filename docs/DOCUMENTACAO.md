@@ -180,10 +180,12 @@ Fila de `fetch` com no máximo `fetchLimit` requisições simultâneas (padrão 
 
 ```js
 const q = new FetchQueue(3);
-q.fetch(url, { headers }, (json, response) => { /* sucesso */ }, erro => { /* falha de rede ou JSON inválido */ });
+q.fetch(url, { headers }, (json, response) => { /* sucesso */ }, (erro, response) => { /* falha */ });
+const { data, error, res } = await q.fetch(url, { headers });   // também devolve uma Promise (nunca rejeita)
 ```
 
-A resposta é sempre lida como JSON e `onDone` é chamado mesmo para status HTTP 4xx/5xx.
+`onDone` recebe o JSON das respostas `ok`. Desde 2026-10-23 uma resposta HTTP 4xx/5xx vai para `onError` (antes chegava
+ao `onDone` com o corpo do erro), assim como falha de rede ou JSON inválido.
 
 ### 3.8 `search.js` — `SearchEngine`
 
@@ -236,8 +238,9 @@ O que é salvo por elemento:
   `tag.classes:nth-child()`); **dê `id` estável a todo elemento com `save`**.
 - Atributo `customTrigger="nomeDeFuncaoGlobal"`: após restaurar, chama `window[nome](elemento)`.
 - Nada é gravado antes de `init()` terminar a restauração (`canSave`); chamar `savePageInfo()` cedo é seguro.
+- O `outerHTML` da página só é gravado (campo `dom`) com `new pageMemory({ saveDom: true })`; nada o lê de volta.
+  Até 2026-10-23 era gravado sempre (~340 KB por gravação no CoverMaker; agora o registro tem ~7 KB).
 - Uma gravação nova aborta a anterior no meio (inclusive entre uma imagem e outra).
-- Cada gravação também guarda `document.documentElement.outerHTML` inteiro (campo `dom`), que não é usado na restauração.
 - Salvamentos são disparados pelos eventos `input/change/click/submit/toggle` (configurável em `listeners`) e por
   mutações de DOM nos elementos marcados, com debounce de 100 ms (`saveDelayMs`) e intervalo mínimo de 2 s
   (`saveIntervalMs`). Uma alteração feita dentro do intervalo é salva no fim dele (antes era perdida).
@@ -305,6 +308,13 @@ outros domínios são ignoradas.
 
 Armazenamento: `localStorage.themeCtrlThemes` (JSON `{nome: [{selector, property, value}]}`) e
 `localStorage.themeCtrlTheme` (tema ativo, reaplicado 100 ms após o carregamento).
+
+## 3.14 Testes
+
+`node --test "tests/*.test.js"` (Node 20+, sem dependências): `Controller`, `object`, `search`, `common`, `FetchQueue`,
+assinatura de imagens do `pageMemory` e coordenadas do mouse. Rodam no CI antes do deploy (`static.yml`: `deploy`
+depende de `test`). Ao mudar um arquivo daqui, copie-o também para `CoverMaker/js/vendor/` e
+`content-recommender/js/vendor/`.
 
 ## 4. Página de demonstração
 
