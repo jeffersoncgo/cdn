@@ -229,7 +229,7 @@ O que é salvo por elemento:
 | `select` | `selectedIndex` (índice, não o valor) | `change` |
 | `details` | `open` | `toggle` |
 | `option` | `selected` | `change` |
-| `img` com `src` `blob:` | conteúdo da imagem em base64 | — |
+| `img` com `src` `blob:` | conteúdo da imagem em base64 (reaproveitado entre Blob URLs pelo `tipo-tamanho-SHA256` do conteúdo; FNV-1a fora de contexto seguro) | — |
 | todos | atributos, exceto `id`, `class`, `style`, `data-*`, `aria-*`, `role`, `hidden`, `title`… | — |
 
 - O elemento é localizado na restauração por um seletor CSS gerado (`#id` se houver, senão um caminho

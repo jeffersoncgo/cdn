@@ -35,6 +35,7 @@
 | CDN-16 ✅ | Baixa | `search.js` | Operador `!=` casa quase tudo; cache por identidade fica velho se o array mudar |
 | CDN-17 ◐ | Baixa | `common.js`, `object.js`, `fetchqueue.js`, `base.js` | `makeObjbyPath` não retorna; protótipos enumeráveis; `fetch` sem `res.ok`; mouse com coordenadas mistas |
 | CDN-18 | Baixa | `README.md` | API descrita não existe; sugere incluir o `script.js` da demo |
+| CDN-19 ✅ | Alta | `pagememory.js` | Imagens identificadas só por `tipo + tamanho`: duas imagens diferentes com o mesmo tamanho em bytes são gravadas como a mesma 🧪 |
 
 ---
 
@@ -339,6 +340,17 @@ O README foi gerado automaticamente e descreve APIs inexistentes (`JCGWeb.PageMe
 contém erro de sintaxe (`function function loadInput()`), diz que o `pagememory` usa `localStorage` e manda incluir
 `https://jeffersoncgo.github.io/cdn/script.js` (o script da demo, que quebra em outras páginas).
 Sugestão: substituir as seções de API por exemplos de [`DOCUMENTACAO.md`](DOCUMENTACAO.md).
+
+### CDN-19 — Assinatura de imagem colide (Alta) 🧪 — ✅ corrigido (2026-10-23)
+
+Achado ao verificar o `CM-11` do CoverMaker. `_savePageInfo` reaproveita o base64 de uma imagem já convertida
+(`blobSignatureCache`) quando a Blob URL muda, e a chave era `${blob.type}-${blob.size}`. Duas imagens **diferentes**
+com o mesmo tamanho em bytes (comum em imagens geradas, como as de teste, e possível em fotos) recebiam a mesma chave:
+depois de recarregar, um slot voltava com a imagem de outro (medido: slots 2 e 3 restaurados com a imagem do slot 0).
+
+Correção: `blobSignature(blob)` = `tipo-tamanho-SHA256(conteúdo)` (`crypto.subtle`; FNV-1a quando a página não é um
+contexto seguro). O custo é uma leitura do blob, que já acontecia para gerar o base64, e só para Blob URLs novas
+(as já vistas usam o `blobCache` por URL). Assinaturas antigas gravadas no IndexedDB continuam válidas como chave.
 
 ---
 
