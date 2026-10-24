@@ -1,8 +1,8 @@
 # 🚀 README AI - cdn
 
-> 📚 **Verified technical docs (pt-BR):** [docs/DOCUMENTACAO.md](docs/DOCUMENTACAO.md) · [Code audit & known issues](docs/AUDITORIA.md)
+> 📚 **Verified technical docs:** [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) · [Code audit & known issues](docs/AUDIT.md)
 >
-> The examples below were checked against the code on 2026-10-23 (an earlier auto-generated version described APIs that do not exist). Full reference: [docs/DOCUMENTACAO.md](docs/DOCUMENTACAO.md).
+> The examples below were checked against the code on 2026-10-23 (an earlier auto-generated version described APIs that do not exist). Full reference: [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md).
 
 This repository houses a collection of client-side JavaScript utilities and UI components designed to enhance web page interactivity and manage client-side state. It provides a modular toolkit for front-end development, offering functionalities ranging from core DOM manipulation and event handling to advanced UI elements like sortable tables, dynamic popup messages, theme control, and interactive tree structures. The project also includes utilities for managing asynchronous operations, sequential ID generation, and persisting simple page state using browser storage. Intended for web developers, this library facilitates the creation of dynamic and responsive web interfaces without relying on server-side frameworks for basic functionalities.
 
